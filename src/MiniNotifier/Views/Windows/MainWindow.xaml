@@ -356,27 +356,40 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock
-                                Style="{StaticResource CaptionTextStyle}"
-                                Text="关闭窗口后应用仍会驻留在系统托盘中。" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <WrapPanel Grid.Row="1" Margin="0,12,0,0" HorizontalAlignment="Right">
-                                <ui:Button
-                                    Style="{StaticResource ToolbarButtonStyle}"
-                                    Appearance="Secondary"
-                                    Command="{Binding TestReminderCommand}"
-                                    Content="立即提醒" />
-                                <ui:Button
-                                    Style="{StaticResource ToolbarButtonStyle}"
-                                    Appearance="Secondary"
-                                    Command="{Binding TogglePauseCommand}"
-                                    Content="{Binding PauseButtonText}" />
-                                <ui:Button
-                                    Style="{StaticResource ToolbarButtonStyle}"
-                                    Appearance="Primary"
-                                    Command="{Binding SaveCommand}"
-                                    Content="保存设置" />
-                            </WrapPanel>
+                                <StackPanel>
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="关闭窗口后应用仍会驻留在系统托盘中。" />
+                                    <TextBlock
+                                        Margin="0,6,0,0"
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="{Binding ApplicationVersionText}" />
+                                </StackPanel>
+
+                                <WrapPanel Grid.Column="1" Margin="12,0,0,0" HorizontalAlignment="Right">
+                                    <ui:Button
+                                        Style="{StaticResource ToolbarButtonStyle}"
+                                        Appearance="Secondary"
+                                        Command="{Binding TestReminderCommand}"
+                                        Content="立即提醒" />
+                                    <ui:Button
+                                        Style="{StaticResource ToolbarButtonStyle}"
+                                        Appearance="Secondary"
+                                        Command="{Binding TogglePauseCommand}"
+                                        Content="{Binding PauseButtonText}" />
+                                    <ui:Button
+                                        Style="{StaticResource ToolbarButtonStyle}"
+                                        Appearance="Primary"
+                                        Command="{Binding SaveCommand}"
+                                        Content="保存设置" />
+                                </WrapPanel>
+                            </Grid>
                         </Grid>
                     </Border>
                 </Grid>

@@ -82,23 +82,18 @@
                 Text="{Binding Message}"
                 TextWrapping="Wrap" />
 
-            <Grid Grid.Row="2" Margin="{StaticResource Thickness.SmallGap}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
+            <StackPanel Grid.Row="2" Margin="{StaticResource Thickness.SmallGap}">
                 <TextBlock
-                    VerticalAlignment="Center"
                     Style="{StaticResource CaptionTextStyle}"
                     Text="{Binding CountdownText}" />
 
                 <Button
-                    Grid.Column="1"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Right"
                     Padding="{StaticResource Thickness.ButtonPadding}"
                     Command="{Binding DismissCommand}"
                     Content="关闭" />
-            </Grid>
+            </StackPanel>
         </Grid>
     </Border>
 </Window>

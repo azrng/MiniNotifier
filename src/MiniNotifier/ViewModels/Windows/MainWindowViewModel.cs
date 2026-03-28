@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MiniNotifier.Helpers;
@@ -84,6 +85,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public string IntervalBadgeText => $"{ReminderIntervalMinutes:0} 分钟 / 次";
 
     public string PauseButtonText => IsPaused ? "恢复提醒" : "暂停提醒";
+
+    public string ApplicationVersionText => $"当前版本 v{ResolveApplicationVersion()}";
 
     public Visibility ContentVisibility =>
         CurrentViewState == SettingsViewState.Content ? Visibility.Visible : Visibility.Collapsed;
@@ -274,5 +277,20 @@ public partial class MainWindowViewModel : ViewModelBase
             ControlAppearance.Danger,
             TimeSpan.FromSeconds(4)
         );
+    }
+
+    private static string ResolveApplicationVersion()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var informationalVersion = assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+
+        if (!string.IsNullOrWhiteSpace(informationalVersion))
+        {
+            return informationalVersion.Split('+')[0];
+        }
+
+        return assembly.GetName().Version?.ToString() ?? "1.0.0";
     }
 }
