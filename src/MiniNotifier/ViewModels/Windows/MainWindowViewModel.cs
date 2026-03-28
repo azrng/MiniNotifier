@@ -19,6 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IReminderPreviewService _reminderPreviewService;
     private readonly ISnackbarService _snackbarService;
     private bool _isInitialized;
+    private bool _isApplyingSettings;
     private DateTimeOffset? _lastReminderAt;
     private DateTimeOffset? _nextReminderAt;
 
@@ -230,8 +231,25 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(NoPermissionVisibility));
     }
 
+    partial void OnIsReminderEnabledChanged(bool value)
+    {
+        RefreshNextReminderPreview();
+    }
+
+    partial void OnIsPausedChanged(bool value)
+    {
+        RefreshNextReminderPreview();
+    }
+
+    partial void OnReminderIntervalMinutesChanged(double value)
+    {
+        RefreshNextReminderPreview();
+    }
+
     private void Apply(HydrationSettingsDto settings)
     {
+        _isApplyingSettings = true;
+
         IsReminderEnabled = settings.IsReminderEnabled;
         IsPaused = settings.IsPaused;
         ReminderIntervalMinutes = settings.ReminderIntervalMinutes;
@@ -243,6 +261,8 @@ public partial class MainWindowViewModel : ViewModelBase
         NextReminderText = FormatDateTime(settings.NextReminderAt, "等待下一次计算");
         LastReminderText = FormatDateTime(settings.LastReminderAt, "今天还没提醒");
         SaveStateText = settings.SaveStateText;
+
+        _isApplyingSettings = false;
     }
 
     private HydrationSettingsDto CreateSnapshot()
@@ -267,6 +287,26 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string FormatDateTime(DateTimeOffset? dateTime, string fallback)
     {
         return dateTime?.ToLocalTime().ToString("HH:mm") ?? fallback;
+    }
+
+    private void RefreshNextReminderPreview()
+    {
+        if (_isApplyingSettings || !_isInitialized)
+        {
+            return;
+        }
+
+        if (!IsReminderEnabled || IsPaused)
+        {
+            NextReminderText = "等待下一次计算";
+            return;
+        }
+
+        var previewTime = DateTimeOffset.Now.AddMinutes(
+            Math.Round(ReminderIntervalMinutes, MidpointRounding.AwayFromZero)
+        );
+
+        NextReminderText = previewTime.ToLocalTime().ToString("HH:mm");
     }
 
     private void ShowError(string title, string message)
