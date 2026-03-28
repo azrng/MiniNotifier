@@ -215,7 +215,7 @@
                                                 Text="自动关闭" />
                                                 <TextBlock
                                                     Style="{StaticResource CaptionTextStyle}"
-                                                    Text="提醒弹窗默认 10 秒后自动收起。" />
+                                                    Text="提醒弹窗默认 15 秒后自动收起。" />
                                         </StackPanel>
 
                                         <ui:NumberBox
