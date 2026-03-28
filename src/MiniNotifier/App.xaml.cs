@@ -42,6 +42,7 @@ public partial class App : Application
                 services.AddSingleton<IWindowManager, WindowManager>();
                 services.AddSingleton<ITrayService, TrayService>();
                 services.AddSingleton<IReminderPreviewService, ReminderPreviewService>();
+                services.AddSingleton<IReminderSchedulerService, ReminderSchedulerService>();
                 services.AddSingleton<IReminderMessageService, ReminderMessageService>();
 
                 services.AddSingleton<MainWindowViewModel>();
@@ -66,6 +67,7 @@ public partial class App : Application
         Current.MainWindow = _host.Services.GetRequiredService<MainWindow>();
         await _host.Services.GetRequiredService<MainWindowViewModel>().InitializeAsync();
         _host.Services.GetRequiredService<ITrayService>().Initialize();
+        _host.Services.GetRequiredService<IReminderSchedulerService>().Initialize();
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -75,6 +77,11 @@ public partial class App : Application
             if (_host.Services.GetService<ITrayService>() is IDisposable disposableTray)
             {
                 disposableTray.Dispose();
+            }
+
+            if (_host.Services.GetService<IReminderSchedulerService>() is IDisposable disposableScheduler)
+            {
+                disposableScheduler.Dispose();
             }
 
             await _host.StopAsync();

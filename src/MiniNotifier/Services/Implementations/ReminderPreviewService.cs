@@ -11,7 +11,11 @@ public sealed class ReminderPreviewService(
     IHydrationSettingsService settingsService
 ) : IReminderPreviewService
 {
-    public async Task ShowAsync(HydrationSettingsDto settings, CancellationToken cancellationToken = default)
+    public async Task ShowAsync(
+        HydrationSettingsDto settings,
+        bool preserveNextReminder = true,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -22,6 +26,6 @@ public sealed class ReminderPreviewService(
             window.Show();
         }).Task;
 
-        await settingsService.RecordReminderShownAsync(preserveNextReminder: true, cancellationToken);
+        await settingsService.RecordReminderShownAsync(preserveNextReminder, cancellationToken);
     }
 }

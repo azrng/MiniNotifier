@@ -4,5 +4,9 @@ namespace MiniNotifier.Services.Interfaces;
 
 public interface IReminderPreviewService
 {
-    Task ShowAsync(HydrationSettingsDto settings, CancellationToken cancellationToken = default);
+    Task ShowAsync(
+        HydrationSettingsDto settings,
+        bool preserveNextReminder = true,
+        CancellationToken cancellationToken = default
+    );
 }
