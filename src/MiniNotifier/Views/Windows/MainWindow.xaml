@@ -189,7 +189,7 @@
                                                 Text="提醒间隔" />
                                             <TextBlock
                                                 Style="{StaticResource CaptionTextStyle}"
-                                                Text="建议保持在 20 到 45 分钟之间。" />
+                                                Text="日常建议保持在 20 到 45 分钟之间，测试可临时设为 1 分钟。" />
                                         </StackPanel>
 
                                         <ui:NumberBox
@@ -198,7 +198,7 @@
                                             HorizontalAlignment="Right"
                                             AutomationProperties.Name="提醒间隔"
                                             Maximum="240"
-                                            Minimum="5"
+                                            Minimum="1"
                                             SpinButtonPlacementMode="Compact"
                                             Value="{Binding ReminderIntervalMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </Grid>

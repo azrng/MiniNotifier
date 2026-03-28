@@ -258,7 +258,7 @@ public sealed class HydrationSettingsService : IHydrationSettingsService, IDispo
     {
         return settings with
         {
-            ReminderIntervalMinutes = Math.Clamp(settings.ReminderIntervalMinutes, 5, 240),
+            ReminderIntervalMinutes = Math.Clamp(settings.ReminderIntervalMinutes, 1, 240),
             AutoCloseSeconds = Math.Clamp(settings.AutoCloseSeconds, 3, 15)
         };
     }
