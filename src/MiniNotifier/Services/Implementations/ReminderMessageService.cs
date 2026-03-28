@@ -6,6 +6,7 @@ namespace MiniNotifier.Services.Implementations;
 
 public sealed class ReminderMessageService : IReminderMessageService
 {
+    private readonly IMouseActivityService _mouseActivityService;
     private readonly object _syncRoot = new();
     private string? _lastSignature;
 
@@ -463,16 +464,22 @@ public sealed class ReminderMessageService : IReminderMessageService
             "保持轻松，继续你的节奏。"
         ]);
 
+    public ReminderMessageService(IMouseActivityService mouseActivityService)
+    {
+        _mouseActivityService = mouseActivityService;
+    }
+
     public ReminderMessage Create(HydrationSettingsDto settings, DateTimeOffset now)
     {
         var catalog = settings.IsPaused ? PausedPreviewCatalog : GetCatalog(now);
-        return BuildMessage(catalog, settings.ReminderIntervalMinutes, now);
+        return BuildMessage(catalog, settings.ReminderIntervalMinutes, now, _mouseActivityService.GetSnapshot());
     }
 
     private ReminderMessage BuildMessage(
         MessageCatalog catalog,
         int reminderIntervalMinutes,
-        DateTimeOffset now
+        DateTimeOffset now,
+        MouseActivitySnapshot activitySnapshot
     )
     {
         ReminderMessage message;
@@ -487,7 +494,7 @@ public sealed class ReminderMessageService : IReminderMessageService
                 message = new ReminderMessage(
                     Pick(catalog.Titles),
                     Pick(catalog.Headlines),
-                    BuildBody(catalog, reminderIntervalMinutes, now)
+                    BuildBody(catalog, reminderIntervalMinutes, now, activitySnapshot)
                 );
 
                 signature = $"{message.Title}|{message.Headline}|{message.Message}";
@@ -504,17 +511,19 @@ public sealed class ReminderMessageService : IReminderMessageService
     private static string BuildBody(
         MessageCatalog catalog,
         int reminderIntervalMinutes,
-        DateTimeOffset now
+        DateTimeOffset now,
+        MouseActivitySnapshot activitySnapshot
     )
     {
         var opening = Pick(catalog.Openings);
         var middle = string.Format(Pick(catalog.Middles), reminderIntervalMinutes);
         var closing = Pick(catalog.Closings);
         var dayContext = GetDayContext(now);
+        var activityContext = GetActivityContext(activitySnapshot);
         var praise = Pick(PraiseFragments);
         var playful = Pick(PlayfulFragments);
 
-        return $"{opening}{middle}{dayContext}{praise}{playful}{closing}";
+        return $"{opening}{middle}{dayContext}{activityContext}{praise}{playful}{closing}";
     }
 
     private static string GetDayContext(DateTimeOffset now)
@@ -522,6 +531,45 @@ public sealed class ReminderMessageService : IReminderMessageService
         var weekendOrWorkday = IsWeekend(now) ? Pick(WeekendFragments) : Pick(WorkdayFragments);
         var weekdayName = GetWeekdayNameFragment(now.DayOfWeek);
         return $"{weekendOrWorkday}{weekdayName}";
+    }
+
+    private static string GetActivityContext(MouseActivitySnapshot snapshot)
+    {
+        return snapshot.WorkState switch
+        {
+            WorkIntensityState.DeepFocus => Pick(
+            [
+                "看起来你刚刚点得不多，更像是在沉浸推进事情。",
+                "最近这段时间点击很少，像是在认真进入深度专注区。",
+                "你的鼠标最近很安静，这通常意味着脑袋正在稳定输出。",
+                "刚才的点击节奏偏少，更像是专注读写、思考或整理内容。",
+                "你这会儿像在深度模式里，补水一下刚好能把状态托住。"
+            ]),
+            WorkIntensityState.SteadyFlow => Pick(
+            [
+                "最近的点击节奏挺稳，像是在有条不紊地推进工作。",
+                "你这会儿的操作频率很均匀，属于稳稳往前推的状态。",
+                "刚才这段时间像是在正常流速处理事情，不急不躁。",
+                "你的鼠标节奏挺顺，像是在稳定推进当前任务。",
+                "这类平稳工作状态最适合顺手补一口，不会打乱节奏。"
+            ]),
+            WorkIntensityState.ActiveHandling => Pick(
+            [
+                "最近这段时间点击挺密，像是在来回处理不少事项。",
+                "看起来你刚刚切换和操作都不少，明显在高频推进任务。",
+                "你这会儿的点击活跃度挺在线，像是在密集处理事情。",
+                "刚才的鼠标节奏偏快，像是在多任务之间灵活穿梭。",
+                "最近操作频率不低，这口水很适合给节奏降一点燥。"
+            ]),
+            _ => Pick(
+            [
+                "最近这阵点击非常密集，像是在高强度连轴转。",
+                "你这会儿手速有点东西，明显正在高频操作区里冲刺。",
+                "刚刚的点击密度很高，像是在处理一串连发任务。",
+                "最近鼠标几乎没闲着，这通常意味着你正在快速切换和处理。",
+                "你刚才像开了加速模式，这口水正适合帮你缓一下。"
+            ])
+        };
     }
 
     private static MessageCatalog GetCatalog(DateTimeOffset now)

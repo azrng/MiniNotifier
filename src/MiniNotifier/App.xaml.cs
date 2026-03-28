@@ -38,6 +38,7 @@ public partial class App : Application
                 services.AddSingleton<IHydrationSettingsRepository, JsonHydrationSettingsRepository>();
                 services.AddSingleton<IAutoStartService, RegistryAutoStartService>();
                 services.AddSingleton<IHydrationSettingsService, HydrationSettingsService>();
+                services.AddSingleton<IMouseActivityService, MouseActivityService>();
                 services.AddSingleton<IWindowManager, WindowManager>();
                 services.AddSingleton<ITrayService, TrayService>();
                 services.AddSingleton<IReminderPreviewService, ReminderPreviewService>();
@@ -52,6 +53,15 @@ public partial class App : Application
             .Build();
 
         await _host.StartAsync();
+
+        try
+        {
+            _host.Services.GetRequiredService<IMouseActivityService>().Initialize();
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("App.MouseActivity.Initialize", ex);
+        }
 
         Current.MainWindow = _host.Services.GetRequiredService<MainWindow>();
         await _host.Services.GetRequiredService<MainWindowViewModel>().InitializeAsync();
