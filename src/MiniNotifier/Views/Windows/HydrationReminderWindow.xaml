@@ -44,7 +44,7 @@
             </EventTrigger>
         </Border.Triggers>
 
-        <Grid MinWidth="360">
+        <Grid MinWidth="360" MaxWidth="468">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -59,15 +59,19 @@
 
                 <controls:AppLogo Margin="0,0,14,0" Width="40" Height="40" />
 
-                <StackPanel Grid.Column="1">
-                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{Binding Title}" />
+                <StackPanel Grid.Column="1" MaxWidth="360">
+                    <TextBlock
+                        Style="{StaticResource CaptionTextStyle}"
+                        Text="{Binding Title}"
+                        TextWrapping="Wrap" />
                     <TextBlock
                         Margin="{StaticResource Thickness.TinyGap}"
                         FontFamily="{StaticResource FontFamily.Display}"
                         FontSize="{StaticResource FontSize.Title}"
                         FontWeight="{StaticResource FontWeight.Bold}"
                         Foreground="{StaticResource Brush.Text.Primary}"
-                        Text="{Binding Headline}" />
+                        Text="{Binding Headline}"
+                        TextWrapping="Wrap" />
                 </StackPanel>
             </Grid>
 
@@ -75,7 +79,8 @@
                 Grid.Row="1"
                 Margin="{StaticResource Thickness.SmallGap}"
                 Style="{StaticResource BodyTextStyle}"
-                Text="{Binding Message}" />
+                Text="{Binding Message}"
+                TextWrapping="Wrap" />
 
             <Grid Grid.Row="2" Margin="{StaticResource Thickness.SmallGap}">
                 <Grid.ColumnDefinitions>
