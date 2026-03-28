@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using Hardcodet.Wpf.TaskbarNotification;
+using MiniNotifier.Helpers;
 using MiniNotifier.Models.DTOs;
 using MiniNotifier.Services.Interfaces;
 
@@ -16,6 +17,7 @@ public sealed class TrayService : ITrayService, IDisposable
     private TaskbarIcon? _taskbarIcon;
     private MenuItem? _pauseMenuItem;
     private bool _isInitialized;
+    private Icon? _trayIcon;
 
     public TrayService(
         IWindowManager windowManager,
@@ -60,10 +62,12 @@ public sealed class TrayService : ITrayService, IDisposable
         menu.Items.Add(new Separator());
         menu.Items.Add(exitMenuItem);
 
+        _trayIcon = AppIconFactory.CreateTrayIcon();
+
         _taskbarIcon = new TaskbarIcon
         {
             ContextMenu = menu,
-            Icon = SystemIcons.Information,
+            Icon = _trayIcon,
             ToolTipText = "MiniNotifier"
         };
 
@@ -84,6 +88,8 @@ public sealed class TrayService : ITrayService, IDisposable
 
         _taskbarIcon?.Dispose();
         _taskbarIcon = null;
+        _trayIcon?.Dispose();
+        _trayIcon = null;
     }
 
     private async void PauseMenuItemOnClick(object sender, RoutedEventArgs e)

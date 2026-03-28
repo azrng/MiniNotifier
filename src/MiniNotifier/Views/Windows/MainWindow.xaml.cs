@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Windows;
+using MiniNotifier.Helpers;
 using MiniNotifier.ViewModels.Windows;
 using Wpf.Ui;
 
@@ -17,6 +18,7 @@ public partial class MainWindow
         InitializeComponent();
 
         DataContext = _viewModel;
+        Icon = AppIconFactory.CreateWindowIcon();
         snackbarService.SetSnackbarPresenter(RootSnackbarPresenter);
 
         Closing += OnClosing;

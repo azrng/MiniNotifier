@@ -1,4 +1,5 @@
 using System.Windows;
+using MiniNotifier.Helpers;
 using MiniNotifier.Models.DTOs;
 using MiniNotifier.ViewModels.Windows;
 
@@ -13,6 +14,7 @@ public partial class HydrationReminderWindow
         InitializeComponent();
 
         DataContext = ViewModel;
+        Icon = AppIconFactory.CreateWindowIcon();
         Loaded += OnLoaded;
         Closed += OnClosed;
     }
