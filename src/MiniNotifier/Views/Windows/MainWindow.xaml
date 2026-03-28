@@ -7,10 +7,10 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:controls="clr-namespace:MiniNotifier.Views.Controls"
     Title="MiniNotifier"
-    Width="920"
-    Height="700"
-    MinWidth="860"
-    MinHeight="640"
+    Width="560"
+    Height="640"
+    MinWidth="520"
+    MinHeight="600"
     Background="{StaticResource Brush.Background.App}"
     ExtendsContentIntoTitleBar="True"
     ResizeMode="NoResize"
@@ -18,7 +18,7 @@
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <Grid>
-        <Grid Margin="20">
+        <Grid Margin="18">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -27,13 +27,13 @@
             <ui:TitleBar
                 Grid.Row="0"
                 Title="MiniNotifier"
+                Margin="0,0,0,14"
                 ShowMinimize="False"
                 ShowMaximize="False"
-                ShowClose="True"
-                Margin="0,0,0,18">
+                ShowClose="True">
                 <ui:TitleBar.Header>
                     <StackPanel Orientation="Horizontal">
-                        <controls:AppLogo Width="28" Height="28" Margin="0,0,10,0" />
+                        <controls:AppLogo Width="24" Height="24" Margin="0,0,10,0" />
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock
                                 FontFamily="{StaticResource FontFamily.Display}"
@@ -43,7 +43,7 @@
                                 Text="MiniNotifier" />
                             <TextBlock
                                 Style="{StaticResource CaptionTextStyle}"
-                                Text="喝水提醒设置" />
+                                Text="轻量提醒设置" />
                         </StackPanel>
                     </StackPanel>
                 </ui:TitleBar.Header>
@@ -57,90 +57,315 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <ui:Card Grid.Row="0" Style="{StaticResource CardStyle}" Padding="20">
-                        <StackPanel>
-                            <TextBlock
-                                Style="{StaticResource SectionTitleTextStyle}"
-                                Text="{Binding HeroStateText}" />
-                            <TextBlock
-                                Margin="{StaticResource Thickness.TinyGap}"
-                                Style="{StaticResource BodyTextStyle}"
-                                Text="{Binding HeroHintText}" />
-                        </StackPanel>
-                    </ui:Card>
-
-                    <ui:Card Grid.Row="1" Style="{StaticResource CardStyle}">
+                    <Border
+                        Grid.Row="0"
+                        Margin="0,0,0,12"
+                        Padding="{StaticResource Thickness.CardPadding.Compact}"
+                        Background="{StaticResource Brush.Background.HeroGradient}"
+                        BorderBrush="{StaticResource Brush.Border.Subtle}"
+                        BorderThickness="{StaticResource Thickness.Border.Regular}"
+                        CornerRadius="{StaticResource Radius.Large}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
+
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock
+                                    Style="{StaticResource SectionTitleTextStyle}"
+                                    Text="{Binding HeroStateText}" />
+                                <TextBlock
+                                    Margin="{StaticResource Thickness.TinyGap}"
+                                    Style="{StaticResource BodyTextStyle}"
+                                    Text="{Binding HeroHintText}" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Padding="12,10"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Background="{StaticResource Brush.Background.Surface}"
+                                BorderBrush="{StaticResource Brush.Border.Subtle}"
+                                BorderThickness="{StaticResource Thickness.Border.Regular}"
+                                CornerRadius="{StaticResource Radius.Medium}">
+                                <StackPanel>
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextStyle}"
+                                        Text="提醒频率" />
+                                    <TextBlock
+                                        FontFamily="{StaticResource FontFamily.Display}"
+                                        FontSize="{StaticResource FontSize.BodyLarge}"
+                                        FontWeight="{StaticResource FontWeight.SemiBold}"
+                                        Foreground="{StaticResource Brush.Text.Primary}"
+                                        Text="{Binding IntervalBadgeText}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,4,0">
+                            <ui:Card Margin="0,0,0,12" Padding="{StaticResource Thickness.CardPadding.Compact}">
+                                <StackPanel>
+                                    <TextBlock
+                                        Style="{StaticResource SectionTitleTextStyle}"
+                                        Text="基础设置" />
+                                    <TextBlock
+                                        Margin="{StaticResource Thickness.TinyGap}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="保持页面简单，常用项都集中在这里。" />
+
+                                    <Border
+                                        Margin="0,16,0,0"
+                                        Padding="0,0,0,12"
+                                        BorderBrush="{StaticResource Brush.Border.Subtle}"
+                                        BorderThickness="0,0,0,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Margin="0,0,12,0">
+                                                <TextBlock
+                                                    Style="{StaticResource BodyTextStyle}"
+                                                    Text="喝水提醒" />
+                                                <TextBlock
+                                                    Style="{StaticResource CaptionTextStyle}"
+                                                    Text="关闭后不再弹窗，但托盘入口仍然保留。" />
+                                            </StackPanel>
+
+                                            <ui:ToggleSwitch
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                AutomationProperties.Name="喝水提醒开关"
+                                                IsChecked="{Binding IsReminderEnabled, Mode=TwoWay}"
+                                                OffContent="关闭"
+                                                OnContent="开启" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Border
+                                        Margin="0,12,0,0"
+                                        Padding="0,0,0,12"
+                                        BorderBrush="{StaticResource Brush.Border.Subtle}"
+                                        BorderThickness="0,0,0,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Margin="0,0,12,0">
+                                                <TextBlock
+                                                    Style="{StaticResource BodyTextStyle}"
+                                                    Text="开机自启动" />
+                                                <TextBlock
+                                                    Style="{StaticResource CaptionTextStyle}"
+                                                    Text="{Binding AutoStartStatusText}" />
+                                            </StackPanel>
+
+                                            <ui:ToggleSwitch
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                AutomationProperties.Name="开机自启动开关"
+                                                IsChecked="{Binding IsAutoStartEnabled, Mode=TwoWay}"
+                                                OffContent="关闭"
+                                                OnContent="开启" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Grid Margin="0,12,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Margin="0,0,12,0">
+                                            <TextBlock
+                                                Style="{StaticResource BodyTextStyle}"
+                                                Text="提醒间隔" />
+                                            <TextBlock
+                                                Style="{StaticResource CaptionTextStyle}"
+                                                Text="建议保持在 20 到 45 分钟之间。" />
+                                        </StackPanel>
+
+                                        <ui:NumberBox
+                                            Grid.Column="1"
+                                            Width="124"
+                                            HorizontalAlignment="Right"
+                                            AutomationProperties.Name="提醒间隔"
+                                            Maximum="240"
+                                            Minimum="5"
+                                            SpinButtonPlacementMode="Compact"
+                                            Value="{Binding ReminderIntervalMinutes, Mode=TwoWay}" />
+                                    </Grid>
+
+                                    <Grid Margin="0,12,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Margin="0,0,12,0">
+                                            <TextBlock
+                                                Style="{StaticResource BodyTextStyle}"
+                                                Text="自动关闭" />
+                                            <TextBlock
+                                                Style="{StaticResource CaptionTextStyle}"
+                                                Text="提醒弹窗默认 5 秒后自动收起。" />
+                                        </StackPanel>
+
+                                        <ui:NumberBox
+                                            Grid.Column="1"
+                                            Width="124"
+                                            HorizontalAlignment="Right"
+                                            AutomationProperties.Name="自动关闭秒数"
+                                            Maximum="15"
+                                            Minimum="3"
+                                            SpinButtonPlacementMode="Compact"
+                                            Value="{Binding AutoCloseSeconds, Mode=TwoWay}" />
+                                    </Grid>
+                                </StackPanel>
+                            </ui:Card>
+
+                            <ui:Card Margin="0,0,0,12" Padding="{StaticResource Thickness.CardPadding.Compact}">
+                                <StackPanel>
+                                    <TextBlock
+                                        Style="{StaticResource SectionTitleTextStyle}"
+                                        Text="当前状态" />
+                                    <TextBlock
+                                        Margin="{StaticResource Thickness.TinyGap}"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="不用展开太多信息，核心状态都放在这一块。" />
+
+                                    <Border
+                                        Margin="0,16,0,0"
+                                        Padding="14,12"
+                                        Background="{StaticResource Brush.Background.Surface}"
+                                        BorderBrush="{StaticResource Brush.Border.Subtle}"
+                                        BorderThickness="{StaticResource Thickness.Border.Regular}"
+                                        CornerRadius="{StaticResource Radius.Medium}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <TextBlock
+                                                    Style="{StaticResource CaptionTextStyle}"
+                                                    Text="下次提醒" />
+                                                <TextBlock
+                                                    Style="{StaticResource BodyTextStyle}"
+                                                    Text="按当前设置计算的预计时间" />
+                                            </StackPanel>
+
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                FontFamily="{StaticResource FontFamily.Display}"
+                                                FontSize="{StaticResource FontSize.Title}"
+                                                FontWeight="{StaticResource FontWeight.SemiBold}"
+                                                Foreground="{StaticResource Brush.Text.Primary}"
+                                                Text="{Binding NextReminderText}" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Border
+                                        Margin="0,10,0,0"
+                                        Padding="14,12"
+                                        Background="{StaticResource Brush.Background.Surface}"
+                                        BorderBrush="{StaticResource Brush.Border.Subtle}"
+                                        BorderThickness="{StaticResource Thickness.Border.Regular}"
+                                        CornerRadius="{StaticResource Radius.Medium}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <TextBlock
+                                                    Style="{StaticResource CaptionTextStyle}"
+                                                    Text="上次提醒" />
+                                                <TextBlock
+                                                    Style="{StaticResource BodyTextStyle}"
+                                                    Text="最近一次弹出提醒的时间" />
+                                            </StackPanel>
+
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                FontFamily="{StaticResource FontFamily.Display}"
+                                                FontSize="{StaticResource FontSize.Title}"
+                                                FontWeight="{StaticResource FontWeight.SemiBold}"
+                                                Foreground="{StaticResource Brush.Text.Primary}"
+                                                Text="{Binding LastReminderText}" />
+                                        </Grid>
+                                    </Border>
+
+                                    <Border
+                                        Margin="0,10,0,0"
+                                        Padding="14,12"
+                                        Background="{StaticResource Brush.Background.Surface}"
+                                        BorderBrush="{StaticResource Brush.Border.Subtle}"
+                                        BorderThickness="{StaticResource Thickness.Border.Regular}"
+                                        CornerRadius="{StaticResource Radius.Medium}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <TextBlock
+                                                    Style="{StaticResource CaptionTextStyle}"
+                                                    Text="保存状态" />
+                                                <TextBlock
+                                                    Style="{StaticResource BodyTextStyle}"
+                                                    Text="保存后这里会同步显示结果" />
+                                            </StackPanel>
+
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                FontWeight="{StaticResource FontWeight.SemiBold}"
+                                                Foreground="{StaticResource Brush.Text.Primary}"
+                                                Text="{Binding SaveStateText}" />
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </ui:Card>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border
+                        Grid.Row="2"
+                        Margin="0,12,0,0"
+                        Padding="{StaticResource Thickness.CardPadding.Compact}"
+                        Background="{StaticResource Brush.Background.Glass}"
+                        BorderBrush="{StaticResource Brush.Border.Subtle}"
+                        BorderThickness="{StaticResource Thickness.Border.Regular}"
+                        CornerRadius="{StaticResource Radius.Large}">
+                        <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <TextBlock
-                                Grid.Row="0"
-                                Grid.ColumnSpan="2"
-                                Margin="{StaticResource Thickness.SmallGap}"
-                                Style="{StaticResource SectionTitleTextStyle}"
-                                Text="提醒设置" />
+                                Style="{StaticResource CaptionTextStyle}"
+                                Text="关闭窗口后应用仍会驻留在系统托盘中。" />
 
-                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,18,18">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="喝水提醒" />
-                                <ui:ToggleSwitch
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    AutomationProperties.Name="喝水提醒开关"
-                                    IsChecked="{Binding IsReminderEnabled, Mode=TwoWay}"
-                                    OffContent="关闭"
-                                    OnContent="开启" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,18">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="开机自启动" />
-                                <ui:ToggleSwitch
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    AutomationProperties.Name="开机自启动开关"
-                                    IsChecked="{Binding IsAutoStartEnabled, Mode=TwoWay}"
-                                    OffContent="关闭"
-                                    OnContent="开启" />
-                                <TextBlock
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    Style="{StaticResource CaptionTextStyle}"
-                                    Text="{Binding AutoStartStatusText}" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,18,18">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="提醒间隔（分钟）" />
-                                <ui:NumberBox
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    AutomationProperties.Name="提醒间隔"
-                                    Maximum="240"
-                                    Minimum="5"
-                                    SpinButtonPlacementMode="Compact"
-                                    Value="{Binding ReminderIntervalMinutes, Mode=TwoWay}" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,18">
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="自动关闭（秒）" />
-                                <ui:NumberBox
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    AutomationProperties.Name="自动关闭秒数"
-                                    Maximum="15"
-                                    Minimum="3"
-                                    SpinButtonPlacementMode="Compact"
-                                    Value="{Binding AutoCloseSeconds, Mode=TwoWay}" />
-                            </StackPanel>
-
-                            <WrapPanel Grid.Row="3" Grid.ColumnSpan="2">
+                            <WrapPanel Grid.Row="1" Margin="0,12,0,0" HorizontalAlignment="Right">
                                 <ui:Button
                                     Style="{StaticResource ToolbarButtonStyle}"
                                     Appearance="Secondary"
                                     Command="{Binding TestReminderCommand}"
-                                    Content="测试提醒" />
+                                    Content="立即提醒" />
                                 <ui:Button
                                     Style="{StaticResource ToolbarButtonStyle}"
                                     Appearance="Secondary"
@@ -153,56 +378,12 @@
                                     Content="保存设置" />
                             </WrapPanel>
                         </Grid>
-                    </ui:Card>
-
-                    <Grid Grid.Row="2" Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <ui:Card Grid.Column="0" Style="{StaticResource CardStyle}" Padding="18">
-                            <StackPanel>
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="下次提醒" />
-                                <TextBlock
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    FontFamily="{StaticResource FontFamily.Display}"
-                                    FontSize="{StaticResource FontSize.Title}"
-                                    FontWeight="{StaticResource FontWeight.SemiBold}"
-                                    Foreground="{StaticResource Brush.Text.Primary}"
-                                    Text="{Binding NextReminderText}" />
-                            </StackPanel>
-                        </ui:Card>
-
-                        <ui:Card Grid.Column="1" Style="{StaticResource CardStyle}" Padding="18">
-                            <StackPanel>
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="上次提醒" />
-                                <TextBlock
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    FontFamily="{StaticResource FontFamily.Display}"
-                                    FontSize="{StaticResource FontSize.Title}"
-                                    FontWeight="{StaticResource FontWeight.SemiBold}"
-                                    Foreground="{StaticResource Brush.Text.Primary}"
-                                    Text="{Binding LastReminderText}" />
-                            </StackPanel>
-                        </ui:Card>
-
-                        <ui:Card Grid.Column="2" Style="{StaticResource CardStyle}" Padding="18">
-                            <StackPanel>
-                                <TextBlock Style="{StaticResource CaptionTextStyle}" Text="保存状态" />
-                                <TextBlock
-                                    Margin="{StaticResource Thickness.TinyGap}"
-                                    Style="{StaticResource BodyTextStyle}"
-                                    Text="{Binding SaveStateText}" />
-                            </StackPanel>
-                        </ui:Card>
-                    </Grid>
+                    </Border>
                 </Grid>
 
                 <Border Visibility="{Binding LoadingVisibility}" Style="{StaticResource GlassPanelStyle}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <ui:ProgressRing Width="72" Height="72" IsIndeterminate="True" />
+                        <ui:ProgressRing Width="64" Height="64" IsIndeterminate="True" />
                         <TextBlock
                             Margin="{StaticResource Thickness.SmallGap}"
                             Style="{StaticResource SectionTitleTextStyle}"
@@ -210,23 +391,23 @@
                         <TextBlock
                             Margin="{StaticResource Thickness.TinyGap}"
                             Style="{StaticResource BodyTextStyle}"
-                            Text="请稍等一下。" />
+                            Text="请稍等一下，马上就好。" />
                     </StackPanel>
                 </Border>
 
                 <Border Visibility="{Binding EmptyVisibility}" Style="{StaticResource GlassPanelStyle}">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="未发现本地配置" />
+                        <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="还没有本地配置" />
                         <TextBlock
                             Margin="{StaticResource Thickness.SmallGap}"
                             Style="{StaticResource BodyTextStyle}"
-                            Text="已为你准备默认提醒配置，可直接继续使用。" />
+                            Text="已为你准备好默认节奏，可以直接继续使用。" />
                         <ui:Button
                             Margin="{StaticResource Thickness.SmallGap}"
                             Appearance="Primary"
                             Command="{Binding SwitchStateCommand}"
                             CommandParameter="Content"
-                            Content="使用默认配置继续" />
+                            Content="使用默认配置" />
                     </StackPanel>
                 </Border>
 
@@ -236,7 +417,7 @@
                         <TextBlock
                             Margin="{StaticResource Thickness.SmallGap}"
                             Style="{StaticResource BodyTextStyle}"
-                            Text="请重试或检查本地配置文件。" />
+                            Text="请重试，或检查本地配置文件是否可访问。" />
                         <WrapPanel HorizontalAlignment="Center">
                             <ui:Button
                                 Style="{StaticResource ToolbarButtonStyle}"
@@ -259,7 +440,7 @@
                         <TextBlock
                             Margin="{StaticResource Thickness.SmallGap}"
                             Style="{StaticResource BodyTextStyle}"
-                            Text="请检查配置目录权限后重试。" />
+                            Text="请检查配置目录权限后再试。" />
                         <ui:Button
                             Margin="{StaticResource Thickness.SmallGap}"
                             Appearance="Primary"
@@ -273,7 +454,7 @@
 
         <ui:SnackbarPresenter
             x:Name="RootSnackbarPresenter"
-            Margin="20"
+            Margin="18"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom" />
     </Grid>
