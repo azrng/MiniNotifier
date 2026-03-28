@@ -19,19 +19,12 @@ public partial class MainWindow
         DataContext = _viewModel;
         snackbarService.SetSnackbarPresenter(RootSnackbarPresenter);
 
-        Loaded += OnLoaded;
         Closing += OnClosing;
     }
 
     public void PrepareForExit()
     {
         _allowClose = true;
-    }
-
-    private async void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        await _viewModel.InitializeAsync();
-        Hide();
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)

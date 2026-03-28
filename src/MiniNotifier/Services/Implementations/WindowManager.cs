@@ -8,25 +8,31 @@ public sealed class WindowManager(MainWindow mainWindow) : IWindowManager
 {
     public void ShowSettingsWindow()
     {
-        if (!mainWindow.IsVisible)
+        Application.Current.Dispatcher.Invoke(() =>
         {
-            mainWindow.Show();
-        }
+            if (!mainWindow.IsVisible)
+            {
+                mainWindow.Show();
+            }
 
-        if (mainWindow.WindowState == WindowState.Minimized)
-        {
-            mainWindow.WindowState = WindowState.Normal;
-        }
+            if (mainWindow.WindowState == WindowState.Minimized)
+            {
+                mainWindow.WindowState = WindowState.Normal;
+            }
 
-        mainWindow.Activate();
-        mainWindow.Topmost = true;
-        mainWindow.Topmost = false;
-        mainWindow.Focus();
+            mainWindow.Activate();
+            mainWindow.Topmost = true;
+            mainWindow.Topmost = false;
+            mainWindow.Focus();
+        });
     }
 
     public void ShutdownApplication()
     {
-        mainWindow.PrepareForExit();
-        Application.Current.Shutdown();
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            mainWindow.PrepareForExit();
+            Application.Current.Shutdown();
+        });
     }
 }

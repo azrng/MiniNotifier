@@ -43,6 +43,7 @@ public partial class App : Application
         await _host.StartAsync();
 
         Current.MainWindow = _host.Services.GetRequiredService<MainWindow>();
+        await _host.Services.GetRequiredService<MainWindowViewModel>().InitializeAsync();
         _host.Services.GetRequiredService<ITrayService>().Initialize();
     }
 
