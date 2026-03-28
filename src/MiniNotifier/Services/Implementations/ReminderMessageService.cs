@@ -472,11 +472,18 @@ public sealed class ReminderMessageService : IReminderMessageService
     public ReminderMessage Create(HydrationSettingsDto settings, DateTimeOffset now)
     {
         var catalog = settings.IsPaused ? PausedPreviewCatalog : GetCatalog(now);
-        return BuildMessage(catalog, settings.ReminderIntervalMinutes, now, _mouseActivityService.GetSnapshot());
+        return BuildMessage(
+            catalog,
+            settings.IsPaused,
+            settings.ReminderIntervalMinutes,
+            now,
+            _mouseActivityService.GetSnapshot()
+        );
     }
 
     private ReminderMessage BuildMessage(
         MessageCatalog catalog,
+        bool isPaused,
         int reminderIntervalMinutes,
         DateTimeOffset now,
         MouseActivitySnapshot activitySnapshot
@@ -494,7 +501,7 @@ public sealed class ReminderMessageService : IReminderMessageService
                 message = new ReminderMessage(
                     Pick(catalog.Titles),
                     Pick(catalog.Headlines),
-                    BuildBody(catalog, reminderIntervalMinutes, now, activitySnapshot)
+                    BuildBody(catalog, isPaused, reminderIntervalMinutes, now, activitySnapshot)
                 );
 
                 signature = $"{message.Title}|{message.Headline}|{message.Message}";
@@ -510,32 +517,36 @@ public sealed class ReminderMessageService : IReminderMessageService
 
     private static string BuildBody(
         MessageCatalog catalog,
+        bool isPaused,
         int reminderIntervalMinutes,
         DateTimeOffset now,
         MouseActivitySnapshot activitySnapshot
     )
     {
-        var opening = Pick(catalog.Openings);
-        var middle = string.Format(Pick(catalog.Middles), reminderIntervalMinutes);
-        var closing = Pick(catalog.Closings);
-        var dayContext = GetDayContext(now);
-        var activityContext = GetActivityContext(activitySnapshot);
-        var praise = Pick(PraiseFragments);
-        var playful = Pick(PlayfulFragments);
+        var contextCandidates = isPaused
+            ? GetPausedContextCandidates()
+            : GetCompactContextCandidates(catalog, reminderIntervalMinutes, now, activitySnapshot);
+        var context = Pick(contextCandidates);
+        var closing = TakeClause(Pick(catalog.Closings), 12);
 
-        return $"{opening}{middle}{dayContext}{activityContext}{praise}{playful}{closing}";
+        return LimitBodyLength($"{context}，{closing}", 40);
     }
 
     private static string GetDayContext(DateTimeOffset now)
     {
         var weekendOrWorkday = IsWeekend(now) ? Pick(WeekendFragments) : Pick(WorkdayFragments);
         var weekdayName = GetWeekdayNameFragment(now.DayOfWeek);
-        return $"{weekendOrWorkday}{weekdayName}";
+
+        return Pick(
+        [
+            TakeClause(weekendOrWorkday, 18),
+            TakeClause(weekdayName, 18)
+        ]);
     }
 
     private static string GetActivityContext(MouseActivitySnapshot snapshot)
     {
-        return snapshot.WorkState switch
+        var message = snapshot.WorkState switch
         {
             WorkIntensityState.DeepFocus => Pick(
             [
@@ -570,6 +581,8 @@ public sealed class ReminderMessageService : IReminderMessageService
                 "你刚才像开了加速模式，这口水正适合帮你缓一下。"
             ])
         };
+
+        return TakeClause(message, 18);
     }
 
     private static MessageCatalog GetCatalog(DateTimeOffset now)
@@ -589,6 +602,72 @@ public sealed class ReminderMessageService : IReminderMessageService
     private static string Pick(IReadOnlyList<string> pool)
     {
         return pool[Random.Shared.Next(pool.Count)];
+    }
+
+    private static string[] GetCompactContextCandidates(
+        MessageCatalog catalog,
+        int reminderIntervalMinutes,
+        DateTimeOffset now,
+        MouseActivitySnapshot activitySnapshot
+    )
+    {
+        return
+        [
+            TakeClause(Pick(catalog.Openings), 18),
+            GetIntervalContext(reminderIntervalMinutes),
+            GetDayContext(now),
+            GetActivityContext(activitySnapshot),
+            TakeClause(Pick(PraiseFragments), 18),
+            TakeClause(Pick(PlayfulFragments), 18)
+        ];
+    }
+
+    private static string[] GetPausedContextCandidates()
+    {
+        return
+        [
+            TakeClause(Pick(PausedPreviewCatalog.Openings), 18),
+            TakeClause(Pick(PausedPreviewCatalog.Middles), 18),
+            "这次只是预览一下提醒样式",
+            "正式提醒还按你的设置走",
+            "看看效果就好，没有催办压力",
+            "这条消息只是出来轻轻露个脸"
+        ];
+    }
+
+    private static string GetIntervalContext(int reminderIntervalMinutes)
+    {
+        return $"到{reminderIntervalMinutes}分钟补水点了";
+    }
+
+    private static string TakeClause(string text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = text.Trim();
+        var punctuationIndex = trimmed.IndexOfAny(['，', '。', '！', '？', '；', '：', ',', '.', '!', '?', ';', ':']);
+        var clause = punctuationIndex > 0 ? trimmed[..punctuationIndex] : trimmed;
+
+        if (clause.Length > maxLength)
+        {
+            clause = clause[..maxLength].TrimEnd();
+        }
+
+        return clause.TrimEnd('，', '。', '！', '？', '；', '：', ',', '.', '!', '?', ';', ':');
+    }
+
+    private static string LimitBodyLength(string text, int maxLength)
+    {
+        if (text.Length <= maxLength)
+        {
+            return text;
+        }
+
+        var truncated = text[..maxLength].TrimEnd('，', '。', '！', '？', '；', '：', ',', '.', '!', '?', ';', ':', ' ');
+        return $"{truncated}…";
     }
 
     private static bool IsWeekend(DateTimeOffset now)
