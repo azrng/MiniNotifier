@@ -1,7 +1,9 @@
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MiniNotifier.Helpers;
 using MiniNotifier.Services.Implementations;
 using MiniNotifier.Services.Interfaces;
 using MiniNotifier.ViewModels.Windows;
@@ -18,6 +20,10 @@ public partial class App : Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         ApplicationThemeManager.Apply(ApplicationTheme.Light);
 
@@ -61,5 +67,25 @@ public partial class App : Application
         }
 
         base.OnExit(e);
+    }
+
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        AppDiagnostics.LogException("App.DispatcherUnhandledException", e.Exception);
+        e.Handled = true;
+    }
+
+    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+        {
+            AppDiagnostics.LogException("AppDomain.UnhandledException", exception);
+        }
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        AppDiagnostics.LogException("TaskScheduler.UnobservedTaskException", e.Exception);
+        e.SetObserved();
     }
 }

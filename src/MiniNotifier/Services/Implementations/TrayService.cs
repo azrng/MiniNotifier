@@ -16,8 +16,8 @@ public sealed class TrayService : ITrayService, IDisposable
 
     private TaskbarIcon? _taskbarIcon;
     private MenuItem? _pauseMenuItem;
-    private bool _isInitialized;
     private Icon? _trayIcon;
+    private bool _isInitialized;
 
     public TrayService(
         IWindowManager windowManager,
@@ -39,21 +39,17 @@ public sealed class TrayService : ITrayService, IDisposable
             return;
         }
 
-        _pauseMenuItem = new MenuItem();
+        _pauseMenuItem = new MenuItem { Header = "暂停提醒" };
         _pauseMenuItem.Click += PauseMenuItemOnClick;
 
         var openMenuItem = new MenuItem { Header = "打开设置" };
-        openMenuItem.Click += (_, _) => _windowManager.ShowSettingsWindow();
+        openMenuItem.Click += OpenMenuItemOnClick;
 
         var previewMenuItem = new MenuItem { Header = "立即提醒一次" };
-        previewMenuItem.Click += async (_, _) =>
-        {
-            var settings = await _settingsService.GetCurrentAsync();
-            await _reminderPreviewService.ShowAsync(settings);
-        };
+        previewMenuItem.Click += PreviewMenuItemOnClick;
 
         var exitMenuItem = new MenuItem { Header = "退出应用" };
-        exitMenuItem.Click += (_, _) => _windowManager.ShutdownApplication();
+        exitMenuItem.Click += ExitMenuItemOnClick;
 
         var menu = new ContextMenu();
         menu.Items.Add(openMenuItem);
@@ -71,7 +67,7 @@ public sealed class TrayService : ITrayService, IDisposable
             ToolTipText = "MiniNotifier"
         };
 
-        _taskbarIcon.TrayLeftMouseUp += (_, _) => _windowManager.ShowSettingsWindow();
+        _taskbarIcon.TrayLeftMouseUp += TrayLeftMouseUpOnClick;
 
         _isInitialized = true;
         _ = RefreshTrayStateAsync();
@@ -86,15 +82,56 @@ public sealed class TrayService : ITrayService, IDisposable
             _pauseMenuItem.Click -= PauseMenuItemOnClick;
         }
 
-        _taskbarIcon?.Dispose();
-        _taskbarIcon = null;
+        if (_taskbarIcon is not null)
+        {
+            _taskbarIcon.TrayLeftMouseUp -= TrayLeftMouseUpOnClick;
+            _taskbarIcon.Dispose();
+            _taskbarIcon = null;
+        }
+
         _trayIcon?.Dispose();
         _trayIcon = null;
     }
 
+    private async void TrayLeftMouseUpOnClick(object sender, RoutedEventArgs e)
+    {
+        await HandleTrayActionAsync(() =>
+        {
+            _windowManager.ShowSettingsWindow();
+            return Task.CompletedTask;
+        });
+    }
+
+    private async void OpenMenuItemOnClick(object sender, RoutedEventArgs e)
+    {
+        await HandleTrayActionAsync(() =>
+        {
+            _windowManager.ShowSettingsWindow();
+            return Task.CompletedTask;
+        });
+    }
+
+    private async void PreviewMenuItemOnClick(object sender, RoutedEventArgs e)
+    {
+        await HandleTrayActionAsync(async () =>
+        {
+            var settings = await _settingsService.GetCurrentAsync();
+            await _reminderPreviewService.ShowAsync(settings);
+        });
+    }
+
     private async void PauseMenuItemOnClick(object sender, RoutedEventArgs e)
     {
-        await _settingsService.TogglePauseAsync();
+        await HandleTrayActionAsync(async () => await _settingsService.TogglePauseAsync());
+    }
+
+    private async void ExitMenuItemOnClick(object sender, RoutedEventArgs e)
+    {
+        await HandleTrayActionAsync(() =>
+        {
+            _windowManager.ShutdownApplication();
+            return Task.CompletedTask;
+        });
     }
 
     private void OnSettingsChanged(object? sender, HydrationSettingsDto settings)
@@ -104,20 +141,52 @@ public sealed class TrayService : ITrayService, IDisposable
 
     private async Task RefreshTrayStateAsync()
     {
-        var settings = await _settingsService.GetCurrentAsync();
-        UpdateTrayDisplay(settings);
+        try
+        {
+            var settings = await _settingsService.GetCurrentAsync();
+            UpdateTrayDisplay(settings);
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("TrayService.RefreshTrayStateAsync", ex);
+        }
     }
 
     private void UpdateTrayDisplay(HydrationSettingsDto settings)
     {
-        if (_pauseMenuItem is null || _taskbarIcon is null)
+        Application.Current.Dispatcher.Invoke(() =>
         {
-            return;
-        }
+            if (_pauseMenuItem is null || _taskbarIcon is null)
+            {
+                return;
+            }
 
-        _pauseMenuItem.Header = settings.IsPaused ? "恢复提醒" : "暂停提醒";
-        _taskbarIcon.ToolTipText = settings.IsReminderEnabled
-            ? settings.IsPaused ? "MiniNotifier · 已暂停" : "MiniNotifier · 运行中"
-            : "MiniNotifier · 已关闭";
+            _pauseMenuItem.Header = settings.IsPaused ? "恢复提醒" : "暂停提醒";
+            _taskbarIcon.ToolTipText = settings.IsReminderEnabled
+                ? settings.IsPaused ? "MiniNotifier · 已暂停" : "MiniNotifier · 运行中"
+                : "MiniNotifier · 已关闭";
+        });
+    }
+
+    private static async Task HandleTrayActionAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("TrayService.HandleTrayActionAsync", ex);
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                MessageBox.Show(
+                    "托盘交互发生异常，错误已记录到本地日志。",
+                    "MiniNotifier",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            });
+        }
     }
 }

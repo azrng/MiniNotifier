@@ -1,3 +1,4 @@
+using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using MiniNotifier.Models.DTOs;
 using MiniNotifier.Services.Interfaces;
@@ -11,10 +12,11 @@ public sealed class ReminderPreviewService(IServiceProvider serviceProvider) : I
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var window = serviceProvider.GetRequiredService<HydrationReminderWindow>();
-        window.Prepare(settings);
-        window.Show();
-
-        return Task.CompletedTask;
+        return Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var window = serviceProvider.GetRequiredService<HydrationReminderWindow>();
+            window.Prepare(settings);
+            window.Show();
+        }).Task;
     }
 }
