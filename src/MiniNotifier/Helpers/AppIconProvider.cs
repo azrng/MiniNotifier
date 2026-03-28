@@ -1,5 +1,5 @@
 using System.Drawing;
-using System.IO;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -7,29 +7,45 @@ namespace MiniNotifier.Helpers;
 
 public static class AppIconProvider
 {
-    private static string IconPath =>
-        Path.Combine(AppContext.BaseDirectory, "Assets", "Icons", "AppIcon.ico");
+    private static readonly Uri IconResourceUri = new("pack://application:,,,/Assets/Icons/AppIcon.ico", UriKind.Absolute);
 
     public static Icon LoadTrayIcon()
     {
-        return File.Exists(IconPath) ? new Icon(IconPath) : SystemIcons.Information;
+        try
+        {
+            var resourceInfo = Application.GetResourceStream(IconResourceUri);
+            if (resourceInfo?.Stream is null)
+            {
+                return SystemIcons.Information;
+            }
+
+            using var iconStream = resourceInfo.Stream;
+            using var icon = new Icon(iconStream);
+            return (Icon)icon.Clone();
+        }
+        catch
+        {
+            return SystemIcons.Information;
+        }
     }
 
     public static ImageSource LoadWindowIcon()
     {
-        if (!File.Exists(IconPath))
+        try
+        {
+            var image = BitmapFrame.Create(
+                IconResourceUri,
+                BitmapCreateOptions.PreservePixelFormat,
+                BitmapCacheOption.OnLoad
+            );
+            image.Freeze();
+            return image;
+        }
+        catch
         {
             return BitmapFrame.Create(
                 new Uri("pack://application:,,,/Wpf.Ui;component/Resources/wpfui.ico", UriKind.Absolute)
             );
         }
-
-        var image = BitmapFrame.Create(
-            new Uri(IconPath, UriKind.Absolute),
-            BitmapCreateOptions.PreservePixelFormat,
-            BitmapCacheOption.OnLoad
-        );
-        image.Freeze();
-        return image;
     }
 }
