@@ -200,7 +200,7 @@
                                             Maximum="240"
                                             Minimum="5"
                                             SpinButtonPlacementMode="Compact"
-                                            Value="{Binding ReminderIntervalMinutes, Mode=TwoWay}" />
+                                            Value="{Binding ReminderIntervalMinutes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </Grid>
 
                                     <Grid Margin="0,12,0,0">
@@ -226,7 +226,7 @@
                                             Maximum="15"
                                             Minimum="3"
                                             SpinButtonPlacementMode="Compact"
-                                            Value="{Binding AutoCloseSeconds, Mode=TwoWay}" />
+                                            Value="{Binding AutoCloseSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </Grid>
                                 </StackPanel>
                             </ui:Card>
