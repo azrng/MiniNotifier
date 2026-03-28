@@ -12,6 +12,7 @@
     MinWidth="1024"
     MinHeight="720"
     Background="{StaticResource Brush.Background.App}"
+    ExtendsContentIntoTitleBar="True"
     WindowBackdropType="Mica"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
