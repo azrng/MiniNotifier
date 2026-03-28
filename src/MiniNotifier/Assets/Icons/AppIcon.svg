@@ -1,0 +1,20 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="32" y1="32" x2="224" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4C84F0"/>
+      <stop offset="1" stop-color="#1E3A8A"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="256" height="256" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#376FC3FF" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#bg)"/>
+    <rect x="18" y="18" width="220" height="220" rx="50" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="4"/>
+    <circle cx="84" cy="76" r="30" fill="#FFFFFF" fill-opacity="0.18"/>
+    <circle cx="168" cy="180" r="22" fill="#6FC3FF" fill-opacity="0.38"/>
+    <path d="M128 54C128 54 70 116 70 149C70 184 96 210 128 210C160 210 186 184 186 149C186 116 128 54 128 54Z" fill="#F8FAFC"/>
+    <path d="M118 104C123 90 133 77 149 67" stroke="#A8E9F9FF" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>

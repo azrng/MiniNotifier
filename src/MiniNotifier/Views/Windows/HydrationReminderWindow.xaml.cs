@@ -14,7 +14,7 @@ public partial class HydrationReminderWindow
         InitializeComponent();
 
         DataContext = ViewModel;
-        Icon = AppIconFactory.CreateWindowIcon();
+        Icon = AppIconProvider.LoadWindowIcon();
         Loaded += OnLoaded;
         Closed += OnClosed;
     }

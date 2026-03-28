@@ -18,7 +18,7 @@ public partial class MainWindow
         InitializeComponent();
 
         DataContext = _viewModel;
-        Icon = AppIconFactory.CreateWindowIcon();
+        Icon = AppIconProvider.LoadWindowIcon();
         snackbarService.SetSnackbarPresenter(RootSnackbarPresenter);
 
         Closing += OnClosing;

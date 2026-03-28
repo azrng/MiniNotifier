@@ -58,7 +58,7 @@ public sealed class TrayService : ITrayService, IDisposable
         menu.Items.Add(new Separator());
         menu.Items.Add(exitMenuItem);
 
-        _trayIcon = AppIconFactory.CreateTrayIcon();
+        _trayIcon = AppIconProvider.LoadTrayIcon();
 
         _taskbarIcon = new TaskbarIcon
         {
