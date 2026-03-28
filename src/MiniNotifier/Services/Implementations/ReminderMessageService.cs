@@ -9,6 +9,58 @@ public sealed class ReminderMessageService : IReminderMessageService
     private readonly object _syncRoot = new();
     private string? _lastSignature;
 
+    private static readonly string[] PraiseFragments =
+    [
+        "你今天这状态，其实已经很能打了，再补口水会更稳。",
+        "你现在这份专注感，很配一口体面的补水。",
+        "像你这样认真推进事情的人，水杯也值得被认真对待。",
+        "你这会儿的节奏挺漂亮，补水一下会更丝滑。",
+        "能把日程撑起来的人，通常也配拥有一口舒服的水。",
+        "你现在像个稳定输出型选手，补水能把手感再托高一点。",
+        "你今天已经够靠谱了，再让身体也跟上节奏会更完整。",
+        "这种在线状态很难得，喝口水相当于顺手加个 buff。",
+        "你现在这股干活气质挺帅，补点水更有面。",
+        "说真的，你这会儿值得一口高级感补水。"
+    ];
+
+    private static readonly string[] PlayfulFragments =
+    [
+        "水杯已经在旁边等到快要出道了。",
+        "再不喝，它可能要申请单独开一场发布会。",
+        "这不是催你，这是水杯在礼貌刷存在感。",
+        "今天的嘴唇不想参加沙漠主题活动。",
+        "工位空气已经开始期待你抬手这一下。",
+        "再拖一会儿，水杯都要怀疑自己失宠了。",
+        "这口水现在喝，体面值会直接上涨。",
+        "别让水杯一直演独角戏，你也参与一下。",
+        "今天的补水任务主打一个轻松拿捏。",
+        "这一步很简单，但气质很加分。"
+    ];
+
+    private static readonly string[] WorkdayFragments =
+    [
+        "工作日的节奏本来就紧，补水这件事更该被排进主线。",
+        "工作日容易一路忙到底，这口水就是你的中途保养。",
+        "今天的安排不一定轻松，但补水可以先轻松完成。",
+        "工作日模式里，越忙越要给身体留一点缓冲。",
+        "别让工作流跑得太满，给水杯留一个插槽。",
+        "认真做事很重要，顺手补水同样算专业操作。",
+        "工作日里能记得喝水的人，通常状态都更稳。",
+        "这会儿补一点，后面继续推进事情会舒服不少."
+    ];
+
+    private static readonly string[] WeekendFragments =
+    [
+        "周末可以松弛，但补水这件事别一起放假。",
+        "周末节奏更自由，刚好适合优雅喝一口。",
+        "既然今天不用那么赶，这口水更值得慢慢喝。",
+        "周末主打一个舒服，补水当然也得跟上。",
+        "休息日的补水，应该带一点轻松感和仪式感。",
+        "周末不是只有快乐，还得配一点水分支持。",
+        "今天的任务可能不多，但舒服这件事要做到位。",
+        "周末就该轻轻松松把水喝掉，不必等提醒太久。"
+    ];
+
     private static readonly MessageCatalog MorningCatalog = new(
         Titles:
         [
@@ -414,10 +466,14 @@ public sealed class ReminderMessageService : IReminderMessageService
     public ReminderMessage Create(HydrationSettingsDto settings, DateTimeOffset now)
     {
         var catalog = settings.IsPaused ? PausedPreviewCatalog : GetCatalog(now);
-        return BuildMessage(catalog, settings.ReminderIntervalMinutes);
+        return BuildMessage(catalog, settings.ReminderIntervalMinutes, now);
     }
 
-    private ReminderMessage BuildMessage(MessageCatalog catalog, int reminderIntervalMinutes)
+    private ReminderMessage BuildMessage(
+        MessageCatalog catalog,
+        int reminderIntervalMinutes,
+        DateTimeOffset now
+    )
     {
         ReminderMessage message;
         string signature;
@@ -431,7 +487,7 @@ public sealed class ReminderMessageService : IReminderMessageService
                 message = new ReminderMessage(
                     Pick(catalog.Titles),
                     Pick(catalog.Headlines),
-                    BuildBody(catalog, reminderIntervalMinutes)
+                    BuildBody(catalog, reminderIntervalMinutes, now)
                 );
 
                 signature = $"{message.Title}|{message.Headline}|{message.Message}";
@@ -445,13 +501,27 @@ public sealed class ReminderMessageService : IReminderMessageService
         return message;
     }
 
-    private static string BuildBody(MessageCatalog catalog, int reminderIntervalMinutes)
+    private static string BuildBody(
+        MessageCatalog catalog,
+        int reminderIntervalMinutes,
+        DateTimeOffset now
+    )
     {
         var opening = Pick(catalog.Openings);
         var middle = string.Format(Pick(catalog.Middles), reminderIntervalMinutes);
         var closing = Pick(catalog.Closings);
+        var dayContext = GetDayContext(now);
+        var praise = Pick(PraiseFragments);
+        var playful = Pick(PlayfulFragments);
 
-        return $"{opening}{middle}{closing}";
+        return $"{opening}{middle}{dayContext}{praise}{playful}{closing}";
+    }
+
+    private static string GetDayContext(DateTimeOffset now)
+    {
+        var weekendOrWorkday = IsWeekend(now) ? Pick(WeekendFragments) : Pick(WorkdayFragments);
+        var weekdayName = GetWeekdayNameFragment(now.DayOfWeek);
+        return $"{weekendOrWorkday}{weekdayName}";
     }
 
     private static MessageCatalog GetCatalog(DateTimeOffset now)
@@ -471,6 +541,25 @@ public sealed class ReminderMessageService : IReminderMessageService
     private static string Pick(IReadOnlyList<string> pool)
     {
         return pool[Random.Shared.Next(pool.Count)];
+    }
+
+    private static bool IsWeekend(DateTimeOffset now)
+    {
+        return now.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    }
+
+    private static string GetWeekdayNameFragment(DayOfWeek dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            DayOfWeek.Monday => "周一先别把自己忙干了，补一口会更好开局。",
+            DayOfWeek.Tuesday => "周二适合继续稳扎稳打，也适合顺手喝水。",
+            DayOfWeek.Wednesday => "周三这种中场位置，补水尤其显得聪明。",
+            DayOfWeek.Thursday => "周四往往容易闷头赶进度，更要记得润一下。",
+            DayOfWeek.Friday => "周五的快乐在路上，水也别落下。",
+            DayOfWeek.Saturday => "周六如果你在放松，这口水会让舒服感更完整。",
+            _ => "周日更适合把状态调柔和一点，补水很加分。"
+        };
     }
 
     private sealed record MessageCatalog(
