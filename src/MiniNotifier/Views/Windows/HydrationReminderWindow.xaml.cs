@@ -29,8 +29,14 @@ public partial class HydrationReminderWindow
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         var workArea = SystemParameters.WorkArea;
-        Left = workArea.Right - ActualWidth - 18;
-        Top = workArea.Bottom - ActualHeight - 18;
+        MaxWidth = Math.Max(328, Math.Min(420, workArea.Width - 36));
+        MaxHeight = Math.Max(240, workArea.Height - 36);
+        MessageScrollViewer.MaxHeight = Math.Max(88, Math.Min(180, workArea.Height * 0.28));
+
+        UpdateLayout();
+
+        Left = Math.Max(workArea.Left + 18, workArea.Right - ActualWidth - 18);
+        Top = Math.Max(workArea.Top + 18, workArea.Bottom - ActualHeight - 18);
         ViewModel.RequestClose += OnRequestClose;
     }
 

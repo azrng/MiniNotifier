@@ -44,10 +44,10 @@
             </EventTrigger>
         </Border.Triggers>
 
-        <Grid MinWidth="360" MaxWidth="468">
+        <Grid MinWidth="328" MaxWidth="420">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" MinHeight="80" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
@@ -59,7 +59,7 @@
 
                 <controls:AppLogo Margin="0,0,14,0" Width="40" Height="40" />
 
-                <StackPanel Grid.Column="1" MaxWidth="360">
+                <StackPanel Grid.Column="1" MaxWidth="310">
                     <TextBlock
                         Style="{StaticResource CaptionTextStyle}"
                         Text="{Binding Title}"
@@ -75,12 +75,17 @@
                 </StackPanel>
             </Grid>
 
-            <TextBlock
+            <ScrollViewer
+                x:Name="MessageScrollViewer"
                 Grid.Row="1"
                 Margin="{StaticResource Thickness.SmallGap}"
-                Style="{StaticResource BodyTextStyle}"
-                Text="{Binding Message}"
-                TextWrapping="Wrap" />
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <TextBlock
+                    Style="{StaticResource BodyTextStyle}"
+                    Text="{Binding Message}"
+                    TextWrapping="Wrap" />
+            </ScrollViewer>
 
             <StackPanel Grid.Row="2" Margin="{StaticResource Thickness.SmallGap}">
                 <TextBlock
