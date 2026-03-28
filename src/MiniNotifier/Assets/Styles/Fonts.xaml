@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <FontFamily x:Key="FontFamily.Default">Segoe UI</FontFamily>
+    <FontFamily x:Key="FontFamily.Display">Segoe UI Semibold</FontFamily>
+
+    <sys:Double x:Key="FontSize.Caption">12</sys:Double>
+    <sys:Double x:Key="FontSize.Body">14</sys:Double>
+    <sys:Double x:Key="FontSize.BodyLarge">16</sys:Double>
+    <sys:Double x:Key="FontSize.Title">22</sys:Double>
+    <sys:Double x:Key="FontSize.Hero">34</sys:Double>
+
+    <FontWeight x:Key="FontWeight.Regular">Normal</FontWeight>
+    <FontWeight x:Key="FontWeight.Medium">Medium</FontWeight>
+    <FontWeight x:Key="FontWeight.SemiBold">SemiBold</FontWeight>
+    <FontWeight x:Key="FontWeight.Bold">Bold</FontWeight>
+</ResourceDictionary>

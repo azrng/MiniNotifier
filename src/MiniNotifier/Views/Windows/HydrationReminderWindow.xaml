@@ -1,0 +1,109 @@
+<ui:FluentWindow
+    x:Class="MiniNotifier.Views.Windows.HydrationReminderWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:controls="clr-namespace:MiniNotifier.Views.Controls"
+    Title="Drink Water"
+    SizeToContent="WidthAndHeight"
+    AllowsTransparency="True"
+    Background="Transparent"
+    ResizeMode="NoResize"
+    ShowActivated="False"
+    ShowInTaskbar="False"
+    Topmost="True"
+    WindowBackdropType="None"
+    WindowStyle="None">
+    <Border
+        x:Name="PopupRoot"
+        Margin="{StaticResource Thickness.CardPadding.Compact}"
+        Padding="{StaticResource Thickness.CardPadding}"
+        Background="{StaticResource Brush.Background.Glass}"
+        BorderBrush="{StaticResource Brush.Border.Subtle}"
+        BorderThickness="{StaticResource Thickness.Border.Regular}"
+        CornerRadius="{StaticResource Radius.Large}"
+        Opacity="0"
+        RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <TranslateTransform X="0" Y="18" />
+        </Border.RenderTransform>
+        <Border.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation
+                            Storyboard.TargetName="PopupRoot"
+                            Storyboard.TargetProperty="Opacity"
+                            To="1"
+                            Duration="0:0:0.20" />
+                        <DoubleAnimation
+                            Storyboard.TargetName="PopupRoot"
+                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                            To="0"
+                            Duration="0:0:0.20" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Border.Triggers>
+
+        <Grid MinWidth="360">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Margin="{StaticResource Thickness.SmallGap}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <controls:AppLogo Margin="0,0,14,0" Width="40" Height="40" />
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Style="{StaticResource CaptionTextStyle}" Text="{Binding Title}" />
+                    <TextBlock
+                        Margin="{StaticResource Thickness.TinyGap}"
+                        FontFamily="{StaticResource FontFamily.Display}"
+                        FontSize="{StaticResource FontSize.Title}"
+                        FontWeight="{StaticResource FontWeight.Bold}"
+                        Foreground="{StaticResource Brush.Text.Primary}"
+                        Text="主人，该喝水了" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock
+                Grid.Row="1"
+                Margin="{StaticResource Thickness.SmallGap}"
+                Style="{StaticResource BodyTextStyle}"
+                Text="{Binding Message}" />
+
+            <TextBlock
+                Grid.Row="2"
+                Margin="{StaticResource Thickness.TinyGap}"
+                Style="{StaticResource CaptionTextStyle}"
+                Text="{Binding CurrentTimeText, StringFormat=当前时间：{0}}" />
+
+            <Grid Grid.Row="3" Margin="{StaticResource Thickness.SmallGap}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextStyle}"
+                    Text="{Binding CountdownText}" />
+
+                <ui:Button
+                    Grid.Column="1"
+                    Padding="{StaticResource Thickness.ButtonPadding}"
+                    Appearance="Primary"
+                    Command="{Binding DismissCommand}"
+                    Content="关闭" />
+            </Grid>
+        </Grid>
+    </Border>
+</ui:FluentWindow>

@@ -1,0 +1,64 @@
+using System.Windows;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MiniNotifier.Services.Implementations;
+using MiniNotifier.Services.Interfaces;
+using MiniNotifier.ViewModels.Windows;
+using MiniNotifier.Views.Windows;
+using Wpf.Ui;
+using Wpf.Ui.Appearance;
+
+namespace MiniNotifier;
+
+public partial class App : Application
+{
+    private IHost? _host;
+
+    protected override async void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        ApplicationThemeManager.Apply(ApplicationTheme.Light);
+
+        _host = Host.CreateDefaultBuilder(e.Args)
+            .ConfigureServices(services =>
+            {
+                services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+                services.AddSingleton<ISnackbarService, SnackbarService>();
+
+                services.AddSingleton<IHydrationSettingsService, MockHydrationSettingsService>();
+                services.AddSingleton<IWindowManager, WindowManager>();
+                services.AddSingleton<ITrayService, TrayService>();
+                services.AddSingleton<IReminderPreviewService, ReminderPreviewService>();
+
+                services.AddSingleton<MainWindowViewModel>();
+                services.AddTransient<HydrationReminderViewModel>();
+
+                services.AddSingleton<MainWindow>();
+                services.AddTransient<HydrationReminderWindow>();
+            })
+            .Build();
+
+        await _host.StartAsync();
+
+        Current.MainWindow = _host.Services.GetRequiredService<MainWindow>();
+        _host.Services.GetRequiredService<ITrayService>().Initialize();
+    }
+
+    protected override async void OnExit(ExitEventArgs e)
+    {
+        if (_host is not null)
+        {
+            if (_host.Services.GetService<ITrayService>() is IDisposable disposableTray)
+            {
+                disposableTray.Dispose();
+            }
+
+            await _host.StopAsync();
+            _host.Dispose();
+        }
+
+        base.OnExit(e);
+    }
+}
