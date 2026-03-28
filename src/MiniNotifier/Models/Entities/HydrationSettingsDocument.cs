@@ -8,7 +8,7 @@ public sealed record HydrationSettingsDocument
 
     public int ReminderIntervalMinutes { get; init; } = 30;
 
-    public int AutoCloseSeconds { get; init; } = 5;
+    public int AutoCloseSeconds { get; init; } = 10;
 
     public DateTimeOffset? LastReminderAt { get; init; }
 
