@@ -1,0 +1,114 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  PROJECT_PATH: 'src/MiniNotifier/MiniNotifier.csproj'
+  APP_NAME: 'MiniNotifier'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build project
+      run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+    - name: Generate release metadata
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      id: release_meta
+      shell: pwsh
+      run: |
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        $shortSha = "${{ github.sha }}".Substring(0, 7)
+        $tag = "build-$timestamp-$shortSha"
+        $releaseName = "MiniNotifier Latest Build"
+        "tag_name=$tag" >> $env:GITHUB_OUTPUT
+        "release_name=$releaseName" >> $env:GITHUB_OUTPUT
+
+    - name: Publish Windows x64
+      shell: pwsh
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          --output publish/win-x64 `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:EnableCompressionInSingleFile=true `
+          -p:DebugType=embedded `
+          -p:PublishReadyToRun=false `
+          -p:PublishTrimmed=false
+
+    - name: Publish Windows x86
+      shell: pwsh
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} `
+          --configuration Release `
+          --runtime win-x86 `
+          --self-contained true `
+          --output publish/win-x86 `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:EnableCompressionInSingleFile=true `
+          -p:DebugType=embedded `
+          -p:PublishReadyToRun=false `
+          -p:PublishTrimmed=false
+
+    - name: Create ZIP packages
+      shell: pwsh
+      run: |
+        Compress-Archive -Path publish/win-x64/* -DestinationPath MiniNotifier-win-x64.zip
+        Compress-Archive -Path publish/win-x86/* -DestinationPath MiniNotifier-win-x86.zip
+
+    - name: Upload artifacts - x64
+      uses: actions/upload-artifact@v4
+      with:
+        name: MiniNotifier-win-x64
+        path: MiniNotifier-win-x64.zip
+        retention-days: 30
+
+    - name: Upload artifacts - x86
+      uses: actions/upload-artifact@v4
+      with:
+        name: MiniNotifier-win-x86
+        path: MiniNotifier-win-x86.zip
+        retention-days: 30
+
+    - name: Create release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.release_meta.outputs.tag_name }}
+        name: ${{ steps.release_meta.outputs.release_name }}
+        target_commitish: ${{ github.sha }}
+        files: |
+          MiniNotifier-win-x64.zip
+          MiniNotifier-win-x86.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        make_latest: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
