@@ -1,6 +1,8 @@
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Threading;
 using Hardcodet.Wpf.TaskbarNotification;
 using MiniNotifier.Helpers;
 using MiniNotifier.Models.DTOs;
@@ -15,9 +17,11 @@ public sealed class TrayService : ITrayService, IDisposable
     private readonly IHydrationSettingsService _settingsService;
 
     private TaskbarIcon? _taskbarIcon;
+    private ContextMenu? _contextMenu;
     private MenuItem? _pauseMenuItem;
     private Icon? _trayIcon;
     private bool _isInitialized;
+    private bool _isContextMenuWarmed;
 
     public TrayService(
         IWindowManager windowManager,
@@ -51,18 +55,18 @@ public sealed class TrayService : ITrayService, IDisposable
         var exitMenuItem = new MenuItem { Header = "退出应用" };
         exitMenuItem.Click += ExitMenuItemOnClick;
 
-        var menu = new ContextMenu();
-        menu.Items.Add(openMenuItem);
-        menu.Items.Add(previewMenuItem);
-        menu.Items.Add(_pauseMenuItem);
-        menu.Items.Add(new Separator());
-        menu.Items.Add(exitMenuItem);
+        _contextMenu = new ContextMenu();
+        _contextMenu.Items.Add(openMenuItem);
+        _contextMenu.Items.Add(previewMenuItem);
+        _contextMenu.Items.Add(_pauseMenuItem);
+        _contextMenu.Items.Add(new Separator());
+        _contextMenu.Items.Add(exitMenuItem);
 
         _trayIcon = AppIconProvider.LoadTrayIcon();
 
         _taskbarIcon = new TaskbarIcon
         {
-            ContextMenu = menu,
+            ContextMenu = _contextMenu,
             Icon = _trayIcon,
             ToolTipText = "MiniNotifier"
         };
@@ -71,6 +75,7 @@ public sealed class TrayService : ITrayService, IDisposable
 
         _isInitialized = true;
         _ = RefreshTrayStateAsync();
+        WarmUpContextMenu();
     }
 
     public void Dispose()
@@ -89,6 +94,7 @@ public sealed class TrayService : ITrayService, IDisposable
             _taskbarIcon = null;
         }
 
+        _contextMenu = null;
         _trayIcon?.Dispose();
         _trayIcon = null;
     }
@@ -166,6 +172,78 @@ public sealed class TrayService : ITrayService, IDisposable
                 ? settings.IsPaused ? "MiniNotifier · 已暂停" : "MiniNotifier · 运行中"
                 : "MiniNotifier · 已关闭";
         });
+    }
+
+    private void WarmUpContextMenu()
+    {
+        if (_contextMenu is null || _isContextMenuWarmed)
+        {
+            return;
+        }
+
+        Application.Current.Dispatcher.BeginInvoke(
+            () =>
+            {
+                if (_contextMenu is null || _isContextMenuWarmed)
+                {
+                    return;
+                }
+
+                try
+                {
+                    PrepareFrameworkElement(_contextMenu, new System.Windows.Size(220, 200));
+
+                    foreach (var item in _contextMenu.Items)
+                    {
+                        switch (item)
+                        {
+                            case MenuItem menuItem:
+                                PrepareFrameworkElement(menuItem, new System.Windows.Size(220, 36));
+                                break;
+                            case Separator separator:
+                                PrepareFrameworkElement(separator, new System.Windows.Size(220, 8));
+                                break;
+                        }
+                    }
+
+                    var originalPlacement = _contextMenu.Placement;
+                    var originalHorizontalOffset = _contextMenu.HorizontalOffset;
+                    var originalVerticalOffset = _contextMenu.VerticalOffset;
+                    var originalOpacity = _contextMenu.Opacity;
+                    var originalStaysOpen = _contextMenu.StaysOpen;
+
+                    _contextMenu.Placement = PlacementMode.AbsolutePoint;
+                    _contextMenu.HorizontalOffset = -10000;
+                    _contextMenu.VerticalOffset = -10000;
+                    _contextMenu.Opacity = 0;
+                    _contextMenu.StaysOpen = true;
+                    _contextMenu.IsOpen = true;
+                    _contextMenu.UpdateLayout();
+                    _contextMenu.IsOpen = false;
+
+                    _contextMenu.Placement = originalPlacement;
+                    _contextMenu.HorizontalOffset = originalHorizontalOffset;
+                    _contextMenu.VerticalOffset = originalVerticalOffset;
+                    _contextMenu.Opacity = originalOpacity;
+                    _contextMenu.StaysOpen = originalStaysOpen;
+
+                    _isContextMenuWarmed = true;
+                }
+                catch (Exception ex)
+                {
+                    AppDiagnostics.LogException("TrayService.WarmUpContextMenu", ex);
+                }
+            },
+            DispatcherPriority.ApplicationIdle
+        );
+    }
+
+    private static void PrepareFrameworkElement(FrameworkElement element, System.Windows.Size desiredSize)
+    {
+        element.ApplyTemplate();
+        element.Measure(desiredSize);
+        element.Arrange(new Rect(0, 0, desiredSize.Width, desiredSize.Height));
+        element.UpdateLayout();
     }
 
     private static async Task HandleTrayActionAsync(Func<Task> action)
