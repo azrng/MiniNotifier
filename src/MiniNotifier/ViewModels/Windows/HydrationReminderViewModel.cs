@@ -2,6 +2,7 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MiniNotifier.Models.DTOs;
+using MiniNotifier.Services.Interfaces;
 using MiniNotifier.ViewModels.Base;
 
 namespace MiniNotifier.ViewModels.Windows;
@@ -9,22 +10,24 @@ namespace MiniNotifier.ViewModels.Windows;
 public partial class HydrationReminderViewModel : ViewModelBase
 {
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly IReminderMessageService _reminderMessageService;
 
-    public HydrationReminderViewModel()
+    public HydrationReminderViewModel(IReminderMessageService reminderMessageService)
     {
+        _reminderMessageService = reminderMessageService;
         _timer.Tick += OnTimerTick;
     }
 
     public event EventHandler? RequestClose;
 
     [ObservableProperty]
-    private string _title = "Drink Water";
+    private string _title = "喝水提醒";
+
+    [ObservableProperty]
+    private string _headline = "主人，该喝水了";
 
     [ObservableProperty]
     private string _message = "起来活动一下，喝几口水，让状态重新上线。";
-
-    [ObservableProperty]
-    private string _currentTimeText = DateTime.Now.ToString("HH:mm");
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CountdownText))]
@@ -36,11 +39,10 @@ public partial class HydrationReminderViewModel : ViewModelBase
     {
         _timer.Stop();
 
-        Title = "Drink Water";
-        Message = settings.IsPaused
-            ? "提醒目前处于暂停模式，这是一条界面预览弹窗。"
-            : "起来活动一下，喝几口水，让状态重新上线。";
-        CurrentTimeText = DateTime.Now.ToString("HH:mm");
+        var reminderMessage = _reminderMessageService.Create(settings, DateTimeOffset.Now);
+        Title = reminderMessage.Title;
+        Headline = reminderMessage.Headline;
+        Message = reminderMessage.Message;
         SecondsRemaining = Math.Max(settings.AutoCloseSeconds, 1);
 
         _timer.Start();
@@ -55,8 +57,6 @@ public partial class HydrationReminderViewModel : ViewModelBase
 
     private void OnTimerTick(object? sender, EventArgs e)
     {
-        CurrentTimeText = DateTime.Now.ToString("HH:mm");
-
         if (SecondsRemaining <= 1)
         {
             _timer.Stop();

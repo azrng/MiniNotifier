@@ -11,4 +11,9 @@ public interface IHydrationSettingsService
     Task<HydrationSettingsDto> SaveAsync(HydrationSettingsDto settings, CancellationToken cancellationToken = default);
 
     Task<HydrationSettingsDto> TogglePauseAsync(CancellationToken cancellationToken = default);
+
+    Task<HydrationSettingsDto> RecordReminderShownAsync(
+        bool preserveNextReminder = true,
+        CancellationToken cancellationToken = default
+    );
 }

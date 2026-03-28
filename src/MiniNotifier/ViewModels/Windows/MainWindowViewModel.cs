@@ -1,6 +1,7 @@
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MiniNotifier.Helpers;
 using MiniNotifier.Models;
 using MiniNotifier.Models.DTOs;
 using MiniNotifier.Services.Interfaces;
@@ -17,6 +18,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IReminderPreviewService _reminderPreviewService;
     private readonly ISnackbarService _snackbarService;
     private bool _isInitialized;
+    private DateTimeOffset? _lastReminderAt;
+    private DateTimeOffset? _nextReminderAt;
 
     public MainWindowViewModel(
         IHydrationSettingsService settingsService,
@@ -113,43 +116,88 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         CurrentViewState = SettingsViewState.Loading;
 
-        var settings = await _settingsService.GetCurrentAsync();
-        Apply(settings);
-        CurrentViewState = SettingsViewState.Content;
+        try
+        {
+            var settings = await _settingsService.GetCurrentAsync();
+            Apply(settings);
+            CurrentViewState = SettingsViewState.Content;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            AppDiagnostics.LogException("MainWindowViewModel.LoadAsync", ex);
+            CurrentViewState = SettingsViewState.NoPermission;
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("MainWindowViewModel.LoadAsync", ex);
+            CurrentViewState = SettingsViewState.Error;
+        }
     }
 
     [RelayCommand]
     private async Task SaveAsync()
     {
-        var saved = await _settingsService.SaveAsync(CreateSnapshot());
-        Apply(saved);
+        try
+        {
+            var saved = await _settingsService.SaveAsync(CreateSnapshot());
+            Apply(saved);
+            CurrentViewState = SettingsViewState.Content;
 
-        _snackbarService.Show(
-            "设置已保存",
-            "Mock 数据已经更新，阶段 2 会接入真实持久化与开机自启动。",
-            ControlAppearance.Success,
-            TimeSpan.FromSeconds(3)
-        );
+            _snackbarService.Show(
+                "设置已保存",
+                "配置文件和开机自启动状态都已经同步更新。",
+                ControlAppearance.Success,
+                TimeSpan.FromSeconds(3)
+            );
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            AppDiagnostics.LogException("MainWindowViewModel.SaveAsync", ex);
+            CurrentViewState = SettingsViewState.NoPermission;
+            ShowError("保存失败", "没有足够权限写入配置或系统自启动项。");
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("MainWindowViewModel.SaveAsync", ex);
+            CurrentViewState = SettingsViewState.Error;
+            ShowError("保存失败", "本地配置或开机自启动更新时发生异常，请稍后重试。");
+        }
     }
 
     [RelayCommand]
     private async Task TestReminderAsync()
     {
-        await _reminderPreviewService.ShowAsync(CreateSnapshot());
+        try
+        {
+            await _reminderPreviewService.ShowAsync(CreateSnapshot());
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("MainWindowViewModel.TestReminderAsync", ex);
+            ShowError("提醒预览失败", "弹窗创建时发生异常，详情已写入本地日志。");
+        }
     }
 
     [RelayCommand]
     private async Task TogglePauseAsync()
     {
-        var saved = await _settingsService.TogglePauseAsync();
-        Apply(saved);
+        try
+        {
+            var saved = await _settingsService.TogglePauseAsync();
+            Apply(saved);
 
-        _snackbarService.Show(
-            IsPaused ? "提醒已暂停" : "提醒已恢复",
-            "托盘状态和界面状态已经同步刷新。",
-            ControlAppearance.Info,
-            TimeSpan.FromSeconds(2)
-        );
+            _snackbarService.Show(
+                IsPaused ? "提醒已暂停" : "提醒已恢复",
+                "托盘状态和界面状态已经同步刷新。",
+                ControlAppearance.Info,
+                TimeSpan.FromSeconds(2)
+            );
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("MainWindowViewModel.TogglePauseAsync", ex);
+            ShowError("状态切换失败", "提醒状态未能更新，请稍后重试。");
+        }
     }
 
     [RelayCommand]
@@ -185,6 +233,8 @@ public partial class MainWindowViewModel : ViewModelBase
         IsPaused = settings.IsPaused;
         ReminderIntervalMinutes = settings.ReminderIntervalMinutes;
         AutoCloseSeconds = settings.AutoCloseSeconds;
+        _lastReminderAt = settings.LastReminderAt;
+        _nextReminderAt = settings.NextReminderAt;
         IsAutoStartEnabled = settings.StartupSettings.IsEnabled;
         AutoStartStatusText = settings.StartupSettings.StatusText;
         NextReminderText = FormatDateTime(settings.NextReminderAt, "等待下一次计算");
@@ -200,8 +250,8 @@ public partial class MainWindowViewModel : ViewModelBase
             IsPaused = IsPaused,
             ReminderIntervalMinutes = (int)Math.Round(ReminderIntervalMinutes, MidpointRounding.AwayFromZero),
             AutoCloseSeconds = (int)Math.Round(AutoCloseSeconds, MidpointRounding.AwayFromZero),
-            LastReminderAt = DateTimeOffset.Now.AddMinutes(-6),
-            NextReminderAt = IsReminderEnabled && !IsPaused ? DateTimeOffset.Now.AddMinutes(ReminderIntervalMinutes) : null,
+            LastReminderAt = _lastReminderAt,
+            NextReminderAt = _nextReminderAt,
             SaveStateText = SaveStateText,
             StartupSettings = new StartupSettingsDto
             {
@@ -214,5 +264,15 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string FormatDateTime(DateTimeOffset? dateTime, string fallback)
     {
         return dateTime?.ToLocalTime().ToString("HH:mm") ?? fallback;
+    }
+
+    private void ShowError(string title, string message)
+    {
+        _snackbarService.Show(
+            title,
+            message,
+            ControlAppearance.Danger,
+            TimeSpan.FromSeconds(4)
+        );
     }
 }

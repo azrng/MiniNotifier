@@ -6,17 +6,22 @@ using MiniNotifier.Views.Windows;
 
 namespace MiniNotifier.Services.Implementations;
 
-public sealed class ReminderPreviewService(IServiceProvider serviceProvider) : IReminderPreviewService
+public sealed class ReminderPreviewService(
+    IServiceProvider serviceProvider,
+    IHydrationSettingsService settingsService
+) : IReminderPreviewService
 {
-    public Task ShowAsync(HydrationSettingsDto settings, CancellationToken cancellationToken = default)
+    public async Task ShowAsync(HydrationSettingsDto settings, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return Application.Current.Dispatcher.InvokeAsync(() =>
+        await Application.Current.Dispatcher.InvokeAsync(() =>
         {
             var window = serviceProvider.GetRequiredService<HydrationReminderWindow>();
             window.Prepare(settings);
             window.Show();
         }).Task;
+
+        await settingsService.RecordReminderShownAsync(preserveNextReminder: true, cancellationToken);
     }
 }

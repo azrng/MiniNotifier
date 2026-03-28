@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MiniNotifier.Helpers;
+using MiniNotifier.Repositories.Implementations;
+using MiniNotifier.Repositories.Interfaces;
 using MiniNotifier.Services.Implementations;
 using MiniNotifier.Services.Interfaces;
 using MiniNotifier.ViewModels.Windows;
@@ -33,10 +35,13 @@ public partial class App : Application
                 services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
                 services.AddSingleton<ISnackbarService, SnackbarService>();
 
-                services.AddSingleton<IHydrationSettingsService, MockHydrationSettingsService>();
+                services.AddSingleton<IHydrationSettingsRepository, JsonHydrationSettingsRepository>();
+                services.AddSingleton<IAutoStartService, RegistryAutoStartService>();
+                services.AddSingleton<IHydrationSettingsService, HydrationSettingsService>();
                 services.AddSingleton<IWindowManager, WindowManager>();
                 services.AddSingleton<ITrayService, TrayService>();
                 services.AddSingleton<IReminderPreviewService, ReminderPreviewService>();
+                services.AddSingleton<IReminderMessageService, ReminderMessageService>();
 
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddTransient<HydrationReminderViewModel>();
