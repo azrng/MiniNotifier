@@ -523,13 +523,75 @@ public sealed class ReminderMessageService : IReminderMessageService
         MouseActivitySnapshot activitySnapshot
     )
     {
-        var contextCandidates = isPaused
-            ? GetPausedContextCandidates()
-            : GetCompactContextCandidates(catalog, reminderIntervalMinutes, now, activitySnapshot);
-        var context = Pick(contextCandidates);
-        var closing = TakeClause(Pick(catalog.Closings), 12);
+        return isPaused
+            ? BuildPausedBody()
+            : BuildCompactBody(catalog, reminderIntervalMinutes, now, activitySnapshot);
+    }
 
-        return LimitBodyLength($"{context}，{closing}", 40);
+    private static string BuildCompactBody(
+        MessageCatalog catalog,
+        int reminderIntervalMinutes,
+        DateTimeOffset now,
+        MouseActivitySnapshot activitySnapshot
+    )
+    {
+        var firstSentence = Pick(
+        [
+            PickShortSentence(catalog.Openings, 22),
+            GetIntervalContext(reminderIntervalMinutes),
+            GetDayContext(now),
+            GetActivityContext(activitySnapshot),
+            PickShortSentence(PraiseFragments, 22),
+            PickShortSentence(PlayfulFragments, 20)
+        ]);
+
+        var secondSentence = Pick(
+        [
+            PickShortSentence(catalog.Middles, 20),
+            PickShortSentence(catalog.Closings, 16),
+            PickShortSentence(PraiseFragments, 18),
+            PickShortSentence(PlayfulFragments, 18)
+        ]);
+
+        if (secondSentence == firstSentence)
+        {
+            secondSentence = PickShortSentence(catalog.Closings, 16);
+        }
+
+        var body = $"{firstSentence}{secondSentence}";
+        var thirdSentence = Pick(
+        [
+            PickShortSentence(catalog.Closings, 14),
+            PickShortSentence(PraiseFragments, 16),
+            PickShortSentence(PlayfulFragments, 16)
+        ]);
+
+        return body.Length + thirdSentence.Length <= 42 && Random.Shared.NextDouble() < 0.35
+            ? $"{body}{thirdSentence}"
+            : body;
+    }
+
+    private static string BuildPausedBody()
+    {
+        var firstSentence = Pick(
+        [
+            "这次只是预览一下提醒样式。",
+            "正式提醒还按你的设置走。",
+            "现在只是轻量演示，不会打乱节奏。",
+            "看看效果就好，没有催办压力。",
+            "这条消息只是出来轻轻露个脸。"
+        ]);
+
+        var secondSentence = Pick(
+        [
+            "想喝就喝，不想喝也没压力。",
+            "围观完毕后，它会安静退场。",
+            "顺手喝一口，也算额外加分。",
+            "这波主打一个轻松出现。",
+            "看完效果，继续你的节奏就好。"
+        ]);
+
+        return firstSentence == secondSentence ? $"{firstSentence}轻松看看就好。" : $"{firstSentence}{secondSentence}";
     }
 
     private static string GetDayContext(DateTimeOffset now)
@@ -539,14 +601,14 @@ public sealed class ReminderMessageService : IReminderMessageService
 
         return Pick(
         [
-            TakeClause(weekendOrWorkday, 18),
-            TakeClause(weekdayName, 18)
+            NormalizeSentence(weekendOrWorkday),
+            NormalizeSentence(weekdayName)
         ]);
     }
 
     private static string GetActivityContext(MouseActivitySnapshot snapshot)
     {
-        var message = snapshot.WorkState switch
+        return NormalizeSentence(snapshot.WorkState switch
         {
             WorkIntensityState.DeepFocus => Pick(
             [
@@ -580,9 +642,7 @@ public sealed class ReminderMessageService : IReminderMessageService
                 "最近鼠标几乎没闲着，这通常意味着你正在快速切换和处理。",
                 "你刚才像开了加速模式，这口水正适合帮你缓一下。"
             ])
-        };
-
-        return TakeClause(message, 18);
+        });
     }
 
     private static MessageCatalog GetCatalog(DateTimeOffset now)
@@ -604,43 +664,45 @@ public sealed class ReminderMessageService : IReminderMessageService
         return pool[Random.Shared.Next(pool.Count)];
     }
 
-    private static string[] GetCompactContextCandidates(
-        MessageCatalog catalog,
-        int reminderIntervalMinutes,
-        DateTimeOffset now,
-        MouseActivitySnapshot activitySnapshot
-    )
-    {
-        return
-        [
-            TakeClause(Pick(catalog.Openings), 18),
-            GetIntervalContext(reminderIntervalMinutes),
-            GetDayContext(now),
-            GetActivityContext(activitySnapshot),
-            TakeClause(Pick(PraiseFragments), 18),
-            TakeClause(Pick(PlayfulFragments), 18)
-        ];
-    }
-
-    private static string[] GetPausedContextCandidates()
-    {
-        return
-        [
-            TakeClause(Pick(PausedPreviewCatalog.Openings), 18),
-            TakeClause(Pick(PausedPreviewCatalog.Middles), 18),
-            "这次只是预览一下提醒样式",
-            "正式提醒还按你的设置走",
-            "看看效果就好，没有催办压力",
-            "这条消息只是出来轻轻露个脸"
-        ];
-    }
-
     private static string GetIntervalContext(int reminderIntervalMinutes)
     {
-        return $"到{reminderIntervalMinutes}分钟补水点了";
+        return $"到{reminderIntervalMinutes}分钟补水点了。";
     }
 
-    private static string TakeClause(string text, int maxLength)
+    private static string PickShortSentence(IReadOnlyList<string> pool, int preferredMaxLength)
+    {
+        var candidates = new List<string>();
+        string? shortest = null;
+
+        foreach (var item in pool)
+        {
+            var sentence = NormalizeSentence(item);
+
+            if (string.IsNullOrWhiteSpace(sentence))
+            {
+                continue;
+            }
+
+            if (shortest is null || sentence.Length < shortest.Length)
+            {
+                shortest = sentence;
+            }
+
+            if (sentence.Length <= preferredMaxLength)
+            {
+                candidates.Add(sentence);
+            }
+        }
+
+        if (candidates.Count > 0)
+        {
+            return Pick(candidates);
+        }
+
+        return shortest ?? string.Empty;
+    }
+
+    private static string NormalizeSentence(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -648,26 +710,15 @@ public sealed class ReminderMessageService : IReminderMessageService
         }
 
         var trimmed = text.Trim();
-        var punctuationIndex = trimmed.IndexOfAny(['，', '。', '！', '？', '；', '：', ',', '.', '!', '?', ';', ':']);
-        var clause = punctuationIndex > 0 ? trimmed[..punctuationIndex] : trimmed;
 
-        if (clause.Length > maxLength)
+        if (trimmed.EndsWith('.'))
         {
-            clause = clause[..maxLength].TrimEnd();
+            trimmed = $"{trimmed[..^1]}。";
         }
 
-        return clause.TrimEnd('，', '。', '！', '？', '；', '：', ',', '.', '!', '?', ';', ':');
-    }
-
-    private static string LimitBodyLength(string text, int maxLength)
-    {
-        if (text.Length <= maxLength)
-        {
-            return text;
-        }
-
-        var truncated = text[..maxLength].TrimEnd('，', '。', '！', '？', '；', '：', ',', '.', '!', '?', ';', ':', ' ');
-        return $"{truncated}…";
+        return trimmed.EndsWith('。') || trimmed.EndsWith('！') || trimmed.EndsWith('？')
+            ? trimmed
+            : $"{trimmed}。";
     }
 
     private static bool IsWeekend(DateTimeOffset now)
