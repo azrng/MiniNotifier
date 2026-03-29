@@ -12,16 +12,18 @@ public sealed class ReminderMessageService : IReminderMessageService
 
     private static readonly string[] PraiseFragments =
     [
-        "你今天这状态，其实已经很能打了，再补口水会更稳。",
+        "你今天这状态很能打，再补口水会更稳。",
         "你现在这份专注感，很配一口体面的补水。",
-        "像你这样认真推进事情的人，水杯也值得被认真对待。",
+        "像你这样认真推进事情的人，连喝水都显得很利落。",
         "你这会儿的节奏挺漂亮，补水一下会更丝滑。",
         "能把日程撑起来的人，通常也配拥有一口舒服的水。",
         "你现在这股稳定输出的劲头，补水一下会更顺。",
-        "你今天已经够靠谱了，再让身体也跟上节奏会更完整。",
+        "你今天已经够靠谱了，再让身体跟上节奏会更完整。",
         "这种在线状态很难得，顺手喝口水会更稳。",
         "你现在这股认真劲很加分，补点水会更显从容。",
-        "说真的，你这会儿值得一口高级感补水。"
+        "说真的，你这会儿很适合来一口高级感补水。",
+        "你这会儿的状态很争气，喝口水会更体面。",
+        "你今天这份执行力，很值得配一口舒服的水。"
     ];
 
     private static readonly string[] PlayfulFragments =
@@ -35,7 +37,9 @@ public sealed class ReminderMessageService : IReminderMessageService
         "这口水现在喝，体面值会直接上涨。",
         "别让水杯一直在旁边独自营业，你也参与一下。",
         "今天这次补水，主打一个轻松完成。",
-        "这一步很简单，但气质很加分。"
+        "这一步很简单，但气质很加分。",
+        "你的水杯今天戏份不多，就等你给它一个镜头。",
+        "抬手喝两口这件事，和你的节奏意外地很配。"
     ];
 
     private static readonly string[] WorkdayFragments =
@@ -219,7 +223,7 @@ public sealed class ReminderMessageService : IReminderMessageService
             "这会儿喝一口，下午后半程会舒服很多",
             "别等嘴巴开裂式上班，现在就补一点",
             "下午最值得做的轻量动作之一，就是喝水",
-            "你的状态条还不错，再加一口会更稳",
+            "你的状态条已经不错，再加一口会更稳",
             "工位续航这一步，就交给手边这杯水",
             "先补水，再继续把事情稳稳往前推"
         ],
@@ -311,7 +315,7 @@ public sealed class ReminderMessageService : IReminderMessageService
             "别让今天最后几小时靠硬扛完成。",
             "喝点水，讲话和思路都会更柔顺一点。",
             "这次补水，属于今天后半场的体贴操作。",
-            "你已经挺努力了，给身体一点支持很合理。",
+            "你已经挺努力了，给身体一点支持也很应该。",
             "这不是打断节奏，而是在帮你把节奏托住。",
             "现在喝两口，晚上的状态通常更舒服。",
             "水一到位，心情和脑袋常常都会更顺一点。"
@@ -535,9 +539,8 @@ public sealed class ReminderMessageService : IReminderMessageService
         MouseActivitySnapshot activitySnapshot
     )
     {
-        var usePlayfulAccent = Random.Shared.NextDouble() < 0.28;
-        var accentPool = usePlayfulAccent ? PlayfulFragments : PraiseFragments;
-        var accentMaxLength = usePlayfulAccent ? 16 : 18;
+        var usePraiseAccent = Random.Shared.NextDouble() < 0.78;
+        var usePlayfulAccent = Random.Shared.NextDouble() < 0.52;
 
         var firstSentence = Pick(
         [
@@ -551,7 +554,7 @@ public sealed class ReminderMessageService : IReminderMessageService
             [
                 PickShortSentence(catalog.Middles, 20),
                 PickShortSentence(catalog.Closings, 16),
-                PickShortSentence(accentPool, accentMaxLength)
+                usePraiseAccent ? PickShortSentence(PraiseFragments, 18) : string.Empty
             ],
             firstSentence
         );
@@ -560,13 +563,14 @@ public sealed class ReminderMessageService : IReminderMessageService
         var thirdSentence = PickDifferentSentence(
             [
                 PickShortSentence(catalog.Closings, 14),
-                PickShortSentence(accentPool, usePlayfulAccent ? 14 : 16)
+                usePlayfulAccent ? PickShortSentence(PlayfulFragments, 14) : string.Empty,
+                usePraiseAccent ? PickShortSentence(PraiseFragments, 15) : string.Empty
             ],
             firstSentence,
             secondSentence
         );
 
-        return body.Length + thirdSentence.Length <= 40 && Random.Shared.NextDouble() < 0.22
+        return body.Length + thirdSentence.Length <= 40 && Random.Shared.NextDouble() < 0.3
             ? $"{body}{thirdSentence}"
             : body;
     }
@@ -584,7 +588,7 @@ public sealed class ReminderMessageService : IReminderMessageService
 
         var secondSentence = Pick(
         [
-            "想喝就喝，先看看效果也很好。",
+            "想喝就喝，顺手看看效果也很好。",
             "围观完毕后，它会安静退场。",
             "顺手喝一口，也算额外加分。",
             "这波主打一个轻松出现。",
@@ -612,34 +616,34 @@ public sealed class ReminderMessageService : IReminderMessageService
         {
             WorkIntensityState.DeepFocus => Pick(
             [
-                "看起来你刚刚点得不多，更像是在沉浸推进事情。",
-                "最近这段时间点击很少，像是在认真进入深度专注区。",
-                "你的鼠标最近很安静，这通常意味着脑袋正在稳定输出。",
-                "刚才的点击节奏偏少，更像是专注读写、思考或整理内容。",
-                "你这会儿像在深度模式里，补水一下刚好能把状态托住。"
+                "看起来你刚刚点得不多，更像是在沉浸推进事情，专注感很在线。",
+                "最近这段时间点击很少，像是在认真进入深度专注区，这状态挺漂亮。",
+                "你的鼠标最近很安静，这通常意味着脑袋正在稳定输出，挺厉害的。",
+                "刚才的点击节奏偏少，更像是专注读写、思考或整理内容，节奏很稳。",
+                "你这会儿像在深度模式里，补水一下刚好能把这份状态托住。"
             ]),
             WorkIntensityState.SteadyFlow => Pick(
             [
-                "最近的点击节奏挺稳，像是在有条不紊地推进工作。",
-                "你这会儿的操作频率很均匀，属于稳稳往前推的状态。",
-                "刚才这段时间像是在正常流速处理事情，不急不躁。",
-                "你的鼠标节奏挺顺，像是在稳定推进当前任务。",
+                "最近的点击节奏挺稳，像是在有条不紊地推进工作，很像你的风格。",
+                "你这会儿的操作频率很均匀，属于稳稳往前推的状态，挺可靠。",
+                "刚才这段时间像是在正常流速处理事情，不急不躁，很有分寸。",
+                "你的鼠标节奏挺顺，像是在稳定推进当前任务，这股稳定劲很加分。",
                 "这类平稳工作状态最适合顺手补一口，不会打乱节奏。"
             ]),
             WorkIntensityState.ActiveHandling => Pick(
             [
-                "最近这段时间点击挺密，像是在来回处理不少事项。",
-                "看起来你刚刚切换和操作都不少，明显在高频推进任务。",
-                "你这会儿的点击活跃度挺在线，像是在密集处理事情。",
-                "刚才的鼠标节奏偏快，像是在多任务之间灵活穿梭。",
+                "最近这段时间点击挺密，像是在来回处理不少事项，反应很快。",
+                "看起来你刚刚切换和操作都不少，明显在高频推进任务，执行力挺在线。",
+                "你这会儿的点击活跃度挺在线，像是在密集处理事情，手感不错。",
+                "刚才的鼠标节奏偏快，像是在多任务之间灵活穿梭，挺利落的。",
                 "最近操作频率不低，这口水很适合给节奏降一点燥。"
             ]),
             _ => Pick(
             [
-                "最近这阵点击非常密集，像是在高强度连轴转。",
-                "你这会儿操作很密，像是在集中处理一串事情。",
-                "刚刚的点击密度很高，像是在处理一串连发任务。",
-                "最近鼠标几乎没闲着，这通常意味着你正在快速切换和处理。",
+                "最近这阵点击非常密集，像是在高强度连轴转，火力挺足。",
+                "你这会儿操作很密，像是在集中处理一串事情，节奏压得很稳。",
+                "刚刚的点击密度很高，像是在处理一串连发任务，动作很利落。",
+                "最近鼠标几乎没闲着，这通常意味着你正在快速切换和处理，状态很顶。",
                 "你刚才节奏挺快，这口水刚好帮你缓一下。"
             ])
         });
