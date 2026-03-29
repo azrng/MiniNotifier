@@ -115,7 +115,7 @@
                                     <TextBlock
                                         Margin="{StaticResource Thickness.TinyGap}"
                                         Style="{StaticResource BodyTextStyle}"
-                                        Text="保持页面简单，常用项都集中在这里。" />
+                                        Text="常用设置都放在这里，改起来会更直接。" />
 
                                     <Border
                                         Margin="0,16,0,0"
@@ -189,7 +189,7 @@
                                                 Text="提醒间隔" />
                                             <TextBlock
                                                 Style="{StaticResource CaptionTextStyle}"
-                                                Text="日常建议保持在 20 到 45 分钟之间，测试可临时设为 1 分钟。" />
+                                                Text="日常建议设置在 20 到 45 分钟之间，也支持最低 1 分钟。" />
                                         </StackPanel>
 
                                         <ui:NumberBox
@@ -239,7 +239,7 @@
                                     <TextBlock
                                         Margin="{StaticResource Thickness.TinyGap}"
                                         Style="{StaticResource BodyTextStyle}"
-                                        Text="不用展开太多信息，核心状态都放在这一块。" />
+                                        Text="常用状态会实时显示在这里，方便你随手确认。" />
 
                                     <Border
                                         Margin="0,16,0,0"

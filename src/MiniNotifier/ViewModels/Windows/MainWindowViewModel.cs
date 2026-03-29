@@ -81,7 +81,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ? "你仍然可以从托盘打开设置并恢复提醒。"
             : IsPaused
                 ? "托盘里可以一键恢复，当前不会触发新的弹窗。"
-                : "当前节奏平稳运行中，下一次会按设置时间触发。";
+                : "当前会按你的设置节奏提醒，下次时间会显示在下方。";
 
     public string IntervalBadgeText => $"{ReminderIntervalMinutes:0} 分钟 / 次";
 
@@ -149,7 +149,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _snackbarService.Show(
                 "设置已保存",
-                "配置文件和开机自启动状态都已经同步更新。",
+                "配置文件和开机自启动状态都已同步更新。",
                 ControlAppearance.Success,
                 TimeSpan.FromSeconds(3)
             );
@@ -192,7 +192,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _snackbarService.Show(
                 IsPaused ? "提醒已暂停" : "提醒已恢复",
-                "托盘状态和界面状态已经同步刷新。",
+                "托盘和当前界面都已同步更新。",
                 ControlAppearance.Info,
                 TimeSpan.FromSeconds(2)
             );

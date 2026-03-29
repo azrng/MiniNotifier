@@ -17,24 +17,24 @@ public sealed class ReminderMessageService : IReminderMessageService
         "像你这样认真推进事情的人，水杯也值得被认真对待。",
         "你这会儿的节奏挺漂亮，补水一下会更丝滑。",
         "能把日程撑起来的人，通常也配拥有一口舒服的水。",
-        "你现在像个稳定输出型选手，补水能把手感再托高一点。",
+        "你现在这股稳定输出的劲头，补水一下会更顺。",
         "你今天已经够靠谱了，再让身体也跟上节奏会更完整。",
-        "这种在线状态很难得，喝口水相当于顺手加个 buff。",
-        "你现在这股干活气质挺帅，补点水更有面。",
+        "这种在线状态很难得，顺手喝口水会更稳。",
+        "你现在这股认真劲很加分，补点水会更显从容。",
         "说真的，你这会儿值得一口高级感补水。"
     ];
 
     private static readonly string[] PlayfulFragments =
     [
         "水杯已经在旁边等到快要出道了。",
-        "再不喝，它可能要申请单独开一场发布会。",
+        "再不喝，它都快准备开个人发布会了。",
         "这不是催你，这是水杯在礼貌刷存在感。",
         "今天的嘴唇不想参加沙漠主题活动。",
         "工位空气已经开始期待你抬手这一下。",
         "再拖一会儿，水杯都要怀疑自己失宠了。",
         "这口水现在喝，体面值会直接上涨。",
-        "别让水杯一直演独角戏，你也参与一下。",
-        "今天的补水任务主打一个轻松拿捏。",
+        "别让水杯一直在旁边独自营业，你也参与一下。",
+        "今天这次补水，主打一个轻松完成。",
         "这一步很简单，但气质很加分。"
     ];
 
@@ -44,10 +44,10 @@ public sealed class ReminderMessageService : IReminderMessageService
         "工作日容易一路忙到底，这口水就是你的中途保养。",
         "今天的安排不一定轻松，但补水可以先轻松完成。",
         "工作日模式里，越忙越要给身体留一点缓冲。",
-        "别让工作流跑得太满，给水杯留一个插槽。",
+        "别让工作流跑得太满，也给自己留一点喝水的空当。",
         "认真做事很重要，顺手补水同样算专业操作。",
         "工作日里能记得喝水的人，通常状态都更稳。",
-        "这会儿补一点，后面继续推进事情会舒服不少."
+        "这会儿补一点，后面继续推进事情会舒服不少。"
     ];
 
     private static readonly string[] WeekendFragments =
@@ -67,7 +67,7 @@ public sealed class ReminderMessageService : IReminderMessageService
         [
             "晨间补水",
             "早安续航",
-            "清晨回蓝",
+            "清晨续杯",
             "早起补给",
             "晨光续杯",
             "晨间提醒",
@@ -123,7 +123,7 @@ public sealed class ReminderMessageService : IReminderMessageService
             "先润一下，今天会更顺。",
             "完成它，你的晨间体验就已经加分了。",
             "这个动作很小，但反馈往往很大。",
-            "喝两口，马上继续当状态选手。",
+            "喝两口，马上继续保持在线状态。",
             "这不是打断，这是体贴的开场白。",
             "补完这口，出发。",
             "今天先从一口舒服的水开始。"
@@ -134,14 +134,14 @@ public sealed class ReminderMessageService : IReminderMessageService
         [
             "午间续杯",
             "中场补给",
-            "中午回蓝",
+            "中午续杯",
             "午休补水",
             "午间提醒",
             "午后前置",
             "水杯播报",
             "午间补丁",
             "续航插播",
-            "中场续命"
+            "午间续航"
         ],
         Headlines:
         [
@@ -187,7 +187,7 @@ public sealed class ReminderMessageService : IReminderMessageService
             "喝完这口，再继续安排下午。",
             "就现在，刚刚合适。",
             "给自己一点水分支持，后面会更舒服。",
-            "这不是摸鱼，这是认真续航。",
+            "这不是分心，这是在给状态续航。",
             "喝完再忙，体验更好。",
             "先润一下，下午更顺滑。",
             "水到位，状态通常也会跟上。",
@@ -199,16 +199,16 @@ public sealed class ReminderMessageService : IReminderMessageService
     private static readonly MessageCatalog AfternoonCatalog = new(
         Titles:
         [
-            "下午回蓝",
+            "下午续杯",
             "工位补水",
             "三点续航",
             "下午提醒",
             "状态补丁",
             "水分回充",
-            "续命插播",
-            "摸鱼许可证",
+            "补水插播",
+            "节奏缓冲",
             "效率维护",
-            "工位小回血"
+            "工位续杯"
         ],
         Headlines:
         [
@@ -220,8 +220,8 @@ public sealed class ReminderMessageService : IReminderMessageService
             "别等嘴巴开裂式上班，现在就补一点",
             "下午最值得做的轻量动作之一，就是喝水",
             "你的状态条还不错，再加一口会更稳",
-            "工位续航请点击水杯确认",
-            "先补水，再继续当效率选手"
+            "工位续航这一步，就交给手边这杯水",
+            "先补水，再继续把事情稳稳往前推"
         ],
         Openings:
         [
@@ -238,7 +238,7 @@ public sealed class ReminderMessageService : IReminderMessageService
         ],
         Middles:
         [
-            "你可以把它理解成一次高质量工位维护。",
+            "你可以把它理解成一次给状态回稳的小维护。",
             "这不是中断流程，这是给流程做保养。",
             "如果继续忙下去，这口水只会显得越来越值。",
             "办公室隐藏任务更新了，目标是优雅地喝两口。",
@@ -247,20 +247,20 @@ public sealed class ReminderMessageService : IReminderMessageService
             "这一口下去，通常能把下午的体验往回拉一截。",
             "它看起来普通，但往往比你想象中更有用。",
             "别让自己在后半程只剩下硬撑模式。",
-            "这一步成本很低，但收益通常很在线。"
+            "这一步不费事，但对状态很友好。"
         ],
         Closings:
         [
             "喝完这口，再继续漂亮输出。",
-            "这不是摸鱼，是专业维护。",
+            "这不是分神，是在帮状态回稳。",
             "补完再战，体验更好。",
             "现在来一口，刚刚好。",
-            "水杯就绪，请完成领取。",
+            "水杯就在手边，顺手喝两口吧。",
             "喝两口，继续稳住。",
-            "这波回蓝，建议立刻执行。",
+            "这一轮补水，建议现在完成。",
             "完成它，下午会更顺滑。",
             "轻轻一口，继续在线。",
-            "现在补，后面少遭罪。"
+            "现在补上，后面会轻松很多。"
         ]);
 
     private static readonly MessageCatalog EveningCatalog = new(
@@ -268,13 +268,13 @@ public sealed class ReminderMessageService : IReminderMessageService
         [
             "傍晚续航",
             "收尾补给",
-            "晚间回蓝",
+            "晚间续杯",
             "傍晚提醒",
             "收工前续杯",
             "夜幕预备",
             "晚间补丁",
             "舒服收工",
-            "晚间续命",
+            "晚间续航",
             "下班前补水"
         ],
         Headlines:
@@ -335,10 +335,10 @@ public sealed class ReminderMessageService : IReminderMessageService
         [
             "深夜巡航",
             "夜猫子补给",
-            "夜间回蓝",
+            "夜间续杯",
             "深夜提醒",
             "安静补水",
-            "深夜续命",
+            "深夜续航",
             "夜间补丁",
             "低打扰续杯",
             "夜航补给",
@@ -373,7 +373,7 @@ public sealed class ReminderMessageService : IReminderMessageService
         Middles:
         [
             "当前提醒节奏是每 {0} 分钟一次，水杯准时来打卡了。",
-            "英雄也得补水，传奇操作不靠嘴唇发干来支撑。",
+            "深夜也要补水，别让嘴唇先进入加班模式。",
             "哪怕只喝几口，也比彻底忘掉强很多。",
             "这一步不会打断你太久，但对状态很友好。",
             "先把水分补上，再继续今晚的支线任务。",
@@ -394,7 +394,7 @@ public sealed class ReminderMessageService : IReminderMessageService
             "喝两口，状态回一点。",
             "别折腾，先润一下。",
             "完成它，夜里会更顺。",
-            "这一口不是热血，是稳。"
+            "这一口不求热血，只求舒服。"
         ]);
 
     private static readonly MessageCatalog PausedPreviewCatalog = new(
@@ -452,7 +452,7 @@ public sealed class ReminderMessageService : IReminderMessageService
         ],
         Closings:
         [
-            "想喝就喝，不想喝也完全没压力。",
+            "想喝就喝，看看效果也完全可以。",
             "这波主打一个轻松出现。",
             "看完效果，我们就安静退场。",
             "这次只是彩排，不抢戏。",
@@ -535,38 +535,38 @@ public sealed class ReminderMessageService : IReminderMessageService
         MouseActivitySnapshot activitySnapshot
     )
     {
+        var usePlayfulAccent = Random.Shared.NextDouble() < 0.28;
+        var accentPool = usePlayfulAccent ? PlayfulFragments : PraiseFragments;
+        var accentMaxLength = usePlayfulAccent ? 16 : 18;
+
         var firstSentence = Pick(
         [
             PickShortSentence(catalog.Openings, 22),
             GetIntervalContext(reminderIntervalMinutes),
             GetDayContext(now),
-            GetActivityContext(activitySnapshot),
-            PickShortSentence(PraiseFragments, 22),
-            PickShortSentence(PlayfulFragments, 20)
+            GetActivityContext(activitySnapshot)
         ]);
 
-        var secondSentence = Pick(
-        [
-            PickShortSentence(catalog.Middles, 20),
-            PickShortSentence(catalog.Closings, 16),
-            PickShortSentence(PraiseFragments, 18),
-            PickShortSentence(PlayfulFragments, 18)
-        ]);
-
-        if (secondSentence == firstSentence)
-        {
-            secondSentence = PickShortSentence(catalog.Closings, 16);
-        }
+        var secondSentence = PickDifferentSentence(
+            [
+                PickShortSentence(catalog.Middles, 20),
+                PickShortSentence(catalog.Closings, 16),
+                PickShortSentence(accentPool, accentMaxLength)
+            ],
+            firstSentence
+        );
 
         var body = $"{firstSentence}{secondSentence}";
-        var thirdSentence = Pick(
-        [
-            PickShortSentence(catalog.Closings, 14),
-            PickShortSentence(PraiseFragments, 16),
-            PickShortSentence(PlayfulFragments, 16)
-        ]);
+        var thirdSentence = PickDifferentSentence(
+            [
+                PickShortSentence(catalog.Closings, 14),
+                PickShortSentence(accentPool, usePlayfulAccent ? 14 : 16)
+            ],
+            firstSentence,
+            secondSentence
+        );
 
-        return body.Length + thirdSentence.Length <= 42 && Random.Shared.NextDouble() < 0.35
+        return body.Length + thirdSentence.Length <= 40 && Random.Shared.NextDouble() < 0.22
             ? $"{body}{thirdSentence}"
             : body;
     }
@@ -584,7 +584,7 @@ public sealed class ReminderMessageService : IReminderMessageService
 
         var secondSentence = Pick(
         [
-            "想喝就喝，不想喝也没压力。",
+            "想喝就喝，先看看效果也很好。",
             "围观完毕后，它会安静退场。",
             "顺手喝一口，也算额外加分。",
             "这波主打一个轻松出现。",
@@ -637,10 +637,10 @@ public sealed class ReminderMessageService : IReminderMessageService
             _ => Pick(
             [
                 "最近这阵点击非常密集，像是在高强度连轴转。",
-                "你这会儿手速有点东西，明显正在高频操作区里冲刺。",
+                "你这会儿操作很密，像是在集中处理一串事情。",
                 "刚刚的点击密度很高，像是在处理一串连发任务。",
                 "最近鼠标几乎没闲着，这通常意味着你正在快速切换和处理。",
-                "你刚才像开了加速模式，这口水正适合帮你缓一下。"
+                "你刚才节奏挺快，这口水刚好帮你缓一下。"
             ])
         });
     }
@@ -666,7 +666,27 @@ public sealed class ReminderMessageService : IReminderMessageService
 
     private static string GetIntervalContext(int reminderIntervalMinutes)
     {
-        return $"到{reminderIntervalMinutes}分钟补水点了。";
+        return $"到了每 {reminderIntervalMinutes} 分钟的补水节点。";
+    }
+
+    private static string PickDifferentSentence(
+        IReadOnlyList<string> pool,
+        params string[] excludedSentences
+    )
+    {
+        var candidates = pool
+            .Where(sentence =>
+                !string.IsNullOrWhiteSpace(sentence) &&
+                excludedSentences.All(excluded => !string.Equals(sentence, excluded, StringComparison.Ordinal))
+            )
+            .ToList();
+
+        if (candidates.Count > 0)
+        {
+            return Pick(candidates);
+        }
+
+        return pool.FirstOrDefault(sentence => !string.IsNullOrWhiteSpace(sentence)) ?? string.Empty;
     }
 
     private static string PickShortSentence(IReadOnlyList<string> pool, int preferredMaxLength)
