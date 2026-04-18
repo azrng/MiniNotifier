@@ -1,0 +1,38 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MiniNotifier.Avalonia.ViewModels"
+             x:Class="MiniNotifier.Avalonia.App"
+             x:DataType="vm:MainWindowViewModel"
+             RequestedThemeVariant="Light">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Assets/Styles/Colors.axaml" />
+        <ResourceInclude Source="/Assets/Styles/Metrics.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="/Assets/Styles/Global.axaml" />
+  </Application.Styles>
+
+  <TrayIcon.Icons>
+    <TrayIcons>
+      <TrayIcon Icon="/Assets/Icons/AppIcon.ico"
+                ToolTipText="{Binding TrayToolTipText}"
+                Command="{Binding ShowWindowCommand}">
+        <TrayIcon.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="打开设置" Command="{Binding ShowWindowCommand}" />
+            <NativeMenuItem Header="立即提醒一次" Command="{Binding TestReminderCommand}" />
+            <NativeMenuItem Header="{Binding PauseMenuText}" Command="{Binding TogglePauseCommand}" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="退出应用" Command="{Binding ExitApplicationCommand}" />
+          </NativeMenu>
+        </TrayIcon.Menu>
+      </TrayIcon>
+    </TrayIcons>
+  </TrayIcon.Icons>
+</Application>

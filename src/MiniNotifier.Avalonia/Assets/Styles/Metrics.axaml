@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Thickness x:Key="Thickness.PagePadding">28</Thickness>
+  <Thickness x:Key="Thickness.CardPadding">24</Thickness>
+  <Thickness x:Key="Thickness.CardPadding.Compact">18</Thickness>
+
+  <CornerRadius x:Key="Radius.Small">12</CornerRadius>
+  <CornerRadius x:Key="Radius.Medium">18</CornerRadius>
+  <CornerRadius x:Key="Radius.Large">24</CornerRadius>
+</ResourceDictionary>

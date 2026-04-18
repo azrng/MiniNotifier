@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Color x:Key="Color.Brand.Primary">#4C84F0</Color>
+  <Color x:Key="Color.Brand.Deep">#1E3A8A</Color>
+  <Color x:Key="Color.Surface">#F8FBFF</Color>
+  <Color x:Key="Color.Surface.Elevated">#FCFEFF</Color>
+  <Color x:Key="Color.Surface.Glass">#EAF6FF</Color>
+  <Color x:Key="Color.Surface.HeroStart">#F0F7FF</Color>
+  <Color x:Key="Color.Surface.HeroEnd">#E4F2FF</Color>
+  <Color x:Key="Color.Border.Subtle">#D6E4F6</Color>
+  <Color x:Key="Color.Text.Primary">#0F172A</Color>
+  <Color x:Key="Color.Text.Secondary">#475569</Color>
+  <Color x:Key="Color.Text.Tertiary">#64748B</Color>
+
+  <SolidColorBrush x:Key="Brush.Background.App" Color="{StaticResource Color.Surface}" />
+  <SolidColorBrush x:Key="Brush.Background.Surface" Color="{StaticResource Color.Surface.Elevated}" />
+  <SolidColorBrush x:Key="Brush.Background.Glass" Color="{StaticResource Color.Surface.Glass}" />
+  <SolidColorBrush x:Key="Brush.Border.Subtle" Color="{StaticResource Color.Border.Subtle}" />
+  <SolidColorBrush x:Key="Brush.Text.Primary" Color="{StaticResource Color.Text.Primary}" />
+  <SolidColorBrush x:Key="Brush.Text.Secondary" Color="{StaticResource Color.Text.Secondary}" />
+  <SolidColorBrush x:Key="Brush.Text.Tertiary" Color="{StaticResource Color.Text.Tertiary}" />
+
+  <LinearGradientBrush x:Key="Brush.Background.HeroGradient" StartPoint="0,0" EndPoint="1,1">
+    <GradientStop Offset="0" Color="{StaticResource Color.Surface.HeroStart}" />
+    <GradientStop Offset="1" Color="{StaticResource Color.Surface.HeroEnd}" />
+  </LinearGradientBrush>
+</ResourceDictionary>

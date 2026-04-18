@@ -1,0 +1,205 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MiniNotifier.Avalonia.ViewModels"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="MiniNotifier.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1080"
+        Height="760"
+        MinWidth="980"
+        MinHeight="700"
+        Background="{StaticResource Brush.Background.App}"
+        Icon="/Assets/Icons/AppIcon.ico"
+        WindowDecorations="Full"
+        Title="MiniNotifier"
+        WindowStartupLocation="CenterScreen">
+  <Grid RowDefinitions="Auto,*" Margin="{StaticResource Thickness.PagePadding}">
+    <Border Grid.Row="0"
+            Classes="hero-card"
+            Padding="{StaticResource Thickness.CardPadding}"
+            Margin="0,0,0,18">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Border Width="44" Height="44" Background="{StaticResource Brush.Background.Surface}" CornerRadius="{StaticResource Radius.Medium}">
+              <Image Width="22" Height="22" Source="/Assets/Icons/AppIcon.ico" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <StackPanel>
+              <TextBlock Classes="headline" Text="MiniNotifier" />
+              <TextBlock Classes="caption" Text="轻量后台提醒，尽量少打断，但关键时刻会把你叫回来喝水" />
+            </StackPanel>
+          </StackPanel>
+          <TextBlock Classes="hero-title" Text="{Binding HeroStateText}" />
+          <TextBlock Classes="body" Text="{Binding HeroHintText}" TextWrapping="Wrap" MaxWidth="680" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="12" HorizontalAlignment="Right">
+          <Border Classes="metric-card" Padding="{StaticResource Thickness.CardPadding.Compact}">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="caption" Text="提醒频率" />
+              <TextBlock Classes="metric" Text="{Binding IntervalBadgeText}" />
+            </StackPanel>
+          </Border>
+          <Border Classes="metric-card" Padding="{StaticResource Thickness.CardPadding.Compact}">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="caption" Text="下次提醒" />
+              <TextBlock Classes="metric" Text="{Binding NextReminderText}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1">
+      <Grid IsVisible="{Binding IsContentVisible}" RowDefinitions="*,Auto">
+        <Grid ColumnDefinitions="*,320" ColumnSpacing="18">
+          <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="18">
+              <Border Classes="panel-card" Padding="{StaticResource Thickness.CardPadding}">
+                <StackPanel Spacing="16">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="section-title" Text="基础设置" />
+                    <TextBlock Classes="body" Text="当前阶段已切到 Avalonia 视图，仍沿用真实配置和持久化服务。" TextWrapping="Wrap" />
+                  </StackPanel>
+
+                  <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="14">
+                    <StackPanel Grid.Row="0" Spacing="4">
+                      <TextBlock Classes="label" Text="喝水提醒" />
+                      <TextBlock Classes="caption" Text="关闭后不会自动弹窗，但托盘入口仍然保留。" />
+                    </StackPanel>
+                    <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsReminderEnabled}" VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Row="1" Spacing="4">
+                      <TextBlock Classes="label" Text="开机自启动" />
+                      <TextBlock Classes="caption" Text="{Binding AutoStartStatusText}" />
+                    </StackPanel>
+                    <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding IsAutoStartEnabled}" VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Row="2" Spacing="4">
+                      <TextBlock Classes="label" Text="提醒间隔" />
+                      <TextBlock Classes="caption" Text="请输入 1 到 240 之间的整数，单位为分钟。" />
+                    </StackPanel>
+                    <TextBox Grid.Row="2" Grid.Column="1" Width="140" Text="{Binding ReminderIntervalText}" PlaceholderText="30" HorizontalAlignment="Right" />
+
+                    <StackPanel Grid.Row="3" Spacing="4">
+                      <TextBlock Classes="label" Text="自动关闭" />
+                      <TextBlock Classes="caption" Text="请输入 3 到 15 之间的整数，单位为秒。" />
+                    </StackPanel>
+                    <TextBox Grid.Row="3" Grid.Column="1" Width="140" Text="{Binding AutoCloseSecondsText}" PlaceholderText="15" HorizontalAlignment="Right" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="panel-card" Padding="{StaticResource Thickness.CardPadding}">
+                <StackPanel Spacing="16">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="section-title" Text="当前状态" />
+                    <TextBlock Classes="body" Text="这些信息直接来自当前真实服务状态，保存后会立即刷新。" TextWrapping="Wrap" />
+                  </StackPanel>
+
+                  <Border Classes="state-row" Padding="{StaticResource Thickness.CardPadding.Compact}">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="4">
+                        <TextBlock Classes="caption" Text="上次提醒" />
+                        <TextBlock Classes="body" Text="最近一次提醒弹出的时间。" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Classes="metric-small" Text="{Binding LastReminderText}" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+
+                  <Border Classes="state-row" Padding="{StaticResource Thickness.CardPadding.Compact}">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="4">
+                        <TextBlock Classes="caption" Text="下次提醒" />
+                        <TextBlock Classes="body" Text="根据当前配置自动推算的下次提醒时间。" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Classes="metric-small" Text="{Binding NextReminderText}" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+
+                  <Border Classes="state-row" Padding="{StaticResource Thickness.CardPadding.Compact}">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Spacing="4">
+                        <TextBlock Classes="caption" Text="保存状态" />
+                        <TextBlock Classes="body" Text="最近一次配置保存和系统同步结果。" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Classes="metric-small" Text="{Binding SaveStateText}" VerticalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+
+          <StackPanel Grid.Column="1" Spacing="18">
+            <Border Classes="panel-card" Padding="{StaticResource Thickness.CardPadding}">
+              <StackPanel Spacing="14">
+                <TextBlock Classes="section-title" Text="操作入口" />
+                <Button Classes="primary-action" Command="{Binding SaveCommand}" Content="保存设置" />
+                <Button Classes="secondary-action" Command="{Binding TestReminderCommand}" Content="立即提醒一次" />
+                <Button Classes="secondary-action" Command="{Binding TogglePauseCommand}" Content="{Binding PauseButtonText}" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="panel-card" Padding="{StaticResource Thickness.CardPadding}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="section-title" Text="应用信息" />
+                <TextBlock Classes="body" Text="{Binding ApplicationVersionText}" />
+                <TextBlock Classes="caption" Text="关闭窗口后应用仍驻留托盘，退出请使用托盘菜单或窗口右侧按钮。" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Classes="footer-card"
+                Margin="0,18,0,0"
+                Padding="{StaticResource Thickness.CardPadding.Compact}">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <StackPanel Spacing="6">
+              <TextBlock Classes="caption" Text="状态提示" />
+              <TextBlock Classes="body" Text="{Binding StatusMessageText}" TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="quiet-action" Command="{Binding ExitApplicationCommand}" Content="退出应用" VerticalAlignment="Center" />
+          </Grid>
+        </Border>
+      </Grid>
+
+      <Border IsVisible="{Binding IsLoadingVisible}" Classes="state-card">
+        <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <ProgressBar Width="240" IsIndeterminate="True" />
+          <TextBlock Classes="section-title" Text="正在同步提醒配置..." HorizontalAlignment="Center" />
+          <TextBlock Classes="body" Text="请稍等，托盘与窗口状态马上就绪。" HorizontalAlignment="Center" />
+        </StackPanel>
+      </Border>
+
+      <Border IsVisible="{Binding IsEmptyVisible}" Classes="state-card">
+        <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
+          <TextBlock Classes="section-title" Text="还没有发现本地配置" HorizontalAlignment="Center" />
+          <TextBlock Classes="body" Text="已为你准备默认节奏：每 30 分钟提醒一次，你也可以继续微调后再保存。" TextWrapping="Wrap" HorizontalAlignment="Center" />
+          <Button Classes="primary-action" Command="{Binding GoToContentCommand}" Content="使用默认配置继续" HorizontalAlignment="Center" />
+        </StackPanel>
+      </Border>
+
+      <Border IsVisible="{Binding IsErrorVisible}" Classes="state-card">
+        <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
+          <TextBlock Classes="section-title" Text="配置加载失败" HorizontalAlignment="Center" />
+          <TextBlock Classes="body" Text="请重试，或检查本地配置文件是否可访问。" TextWrapping="Wrap" HorizontalAlignment="Center" />
+          <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+            <Button Classes="secondary-action" Command="{Binding LoadCommand}" Content="重试" />
+            <Button Classes="primary-action" Command="{Binding GoToContentCommand}" Content="返回设置" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border IsVisible="{Binding IsNoPermissionVisible}" Classes="state-card">
+        <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
+          <TextBlock Classes="section-title" Text="当前没有写入权限" HorizontalAlignment="Center" />
+          <TextBlock Classes="body" Text="你可以继续查看当前配置，但暂时无法保存或更新开机自启动。" TextWrapping="Wrap" HorizontalAlignment="Center" />
+          <Button Classes="primary-action" Command="{Binding GoToContentCommand}" Content="返回设置" HorizontalAlignment="Center" />
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>
