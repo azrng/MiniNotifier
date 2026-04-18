@@ -21,3 +21,4 @@
 - 2026-04-18：为 Avalonia GitHub Actions 发布链路补齐发布目录和 ZIP 产物存在性校验。
 - 2026-04-18：为 Avalonia 新增 `win-x64 Single File` 发布配置，并让 CI 同时产出 `AOT` 与 `单 exe` 两种包。
 - 2026-04-18：清理 Avalonia 发布目录中的 `.pdb` 符号文件，确保 `Single File` 档位目录最终只保留一个 exe。
+- 2026-04-18：修复 Avalonia 主窗口右侧卡片在小高度下遮挡底部状态栏的问题。
