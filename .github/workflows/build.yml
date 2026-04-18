@@ -55,10 +55,30 @@ jobs:
           --configuration Release `
           /p:PublishProfile=${{ env.PUBLISH_PROFILE }}
 
+    - name: Verify Native AOT publish output
+      shell: pwsh
+      run: |
+        $exePath = Join-Path "${{ env.PUBLISH_OUTPUT }}" "MiniNotifier.Avalonia.exe"
+        if (-not (Test-Path $exePath)) {
+          throw "Native AOT publish output missing executable: $exePath"
+        }
+
+        Get-Item $exePath | Format-List FullName,Length,LastWriteTime
+
     - name: Create ZIP packages
       shell: pwsh
       run: |
         Compress-Archive -Path "${{ env.PUBLISH_OUTPUT }}/*" -DestinationPath MiniNotifier-win-x64-aot.zip
+
+    - name: Verify ZIP package
+      shell: pwsh
+      run: |
+        $zipPath = "MiniNotifier-win-x64-aot.zip"
+        if (-not (Test-Path $zipPath)) {
+          throw "Release ZIP package was not created: $zipPath"
+        }
+
+        Get-Item $zipPath | Format-List FullName,Length,LastWriteTime
 
     - name: Upload artifacts - win-x64-aot
       uses: actions/upload-artifact@v4
