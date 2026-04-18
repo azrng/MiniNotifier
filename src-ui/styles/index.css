@@ -49,6 +49,22 @@ body {
   background-attachment: fixed;
 }
 
+:root[data-window="reminder"] {
+  background: transparent;
+}
+
+html[data-window="reminder"],
+body[data-window="reminder"],
+body[data-window="reminder"] #root {
+  background: transparent;
+}
+
+html[data-window="reminder"],
+body[data-window="reminder"],
+body[data-window="reminder"] #root {
+  overflow: hidden;
+}
+
 * {
   box-sizing: border-box;
 }

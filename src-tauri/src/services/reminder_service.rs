@@ -107,8 +107,8 @@ fn prepare_reminder_window(app: &AppHandle, reminder_window: &WebviewWindow) -> 
     let scale_factor = monitor.scale_factor();
     let monitor_width = f64::from(monitor.size().width) / scale_factor;
     let monitor_height = f64::from(monitor.size().height) / scale_factor;
-    let width = 380.0;
-    let height = 240.0;
+    let width = 460.0;
+    let height = 320.0;
     let x = (monitor_width - width - 24.0).max(24.0);
     let y = (monitor_height - height - 48.0).max(24.0);
 

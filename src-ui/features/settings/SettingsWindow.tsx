@@ -235,14 +235,14 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
 
   if (settingsQuery.isError || !settingsQuery.data) {
     return (
-      <StatePanel
-        eyebrow="Error"
-        title="提醒配置加载失败"
-        description={viewError?.message ?? "当前未能读取本地配置，请稍后重试。"}
-        primaryLabel="重新加载"
-        onPrimaryClick={() => void settingsQuery.refetch()}
-        footer="如果问题持续存在，建议检查现有 WPF 配置文件是否损坏。"
-      />
+        <StatePanel
+          eyebrow="Error"
+          title="提醒配置加载失败"
+          description={viewError?.message ?? "当前未能读取本地配置，请稍后重试。"}
+          primaryLabel="重新加载"
+          onPrimaryClick={() => void settingsQuery.refetch()}
+          footer="如果问题持续存在，建议检查本地提醒配置文件是否损坏。"
+        />
     );
   }
 
@@ -274,10 +274,10 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
               <div className="max-w-2xl">
                 <div className="text-xs font-semibold uppercase tracking-[0.32em] text-brand-700">MiniNotifier</div>
                 <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Tauri 渐进迁移设置页
+                  喝水提醒中心
                 </h1>
                 <p className="mt-3 text-sm leading-7 text-slate-600">
-                  保留原有托盘提醒节奏，同时把配置链路迁到 Rust 与 React。界面强调清晰、冷静和可扫描的桌面效率感。
+                  把提醒节奏、托盘常驻和自动关闭整理到一个清爽面板里，随时调成最适合你的工作状态。
                 </p>
               </div>
               <div className="rounded-[24px] border border-white/70 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-[var(--mn-shadow-sm)]">
@@ -323,7 +323,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
               />
             </section>
 
-            <section className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+            <section className="mt-6">
               <form
                 className="rounded-[30px] border border-white/70 bg-white/78 p-6 shadow-card"
                 onSubmit={form.handleSubmit((values) => void saveMutation.mutateAsync(values))}
@@ -368,7 +368,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
                       <div>
                         <div className="text-sm font-semibold text-slate-900">开机自启动</div>
                         <div className="mt-1 text-sm leading-6 text-slate-500">
-                          通过 Rust 侧接入系统自启动，和提醒总开关互不耦合。
+                          开机后自动在后台待命，和提醒总开关互不影响。
                         </div>
                       </div>
                       <input
@@ -452,28 +452,6 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
                   </Button>
                 </div>
               </form>
-
-              <aside className="space-y-5">
-                <section className="rounded-[30px] border border-white/70 bg-white/78 p-6 shadow-card">
-                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-700">迁移状态</div>
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
-                    当前切片已经把设置链路迁到 Tauri
-                  </h2>
-                  <ul className="mt-5 space-y-3 text-sm leading-7 text-slate-600">
-                    <li>托盘菜单、暂停/恢复、立即提醒与退出动作由 Rust 托管。</li>
-                    <li>配置文件继续兼容 `%LocalAppData%/MiniNotifier/hydration-settings.json`。</li>
-                    <li>设置页通过 Command 读写真实配置，不再依赖 WPF ViewModel。</li>
-                    <li>提醒文案现在会结合时间段和全局鼠标活跃度来调整语气。</li>
-                  </ul>
-                </section>
-                <MetricCard
-                  accent="amber"
-                  title="关闭提示"
-                  value="托盘常驻"
-                  hint="关闭设置窗口不会退出应用，核心调度会在后台继续运行。"
-                  footer="这是沿用原 WPF 版的行为约定。"
-                />
-              </aside>
             </section>
           </div>
         </div>
@@ -484,7 +462,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
 
 function buildActivityHint(activity?: MouseActivitySnapshot) {
   if (!activity) {
-    return "正在等待 Rust 侧返回当前鼠标活跃度。";
+    return "正在读取当前的活动状态。";
   }
 
   if (activity.workState === "unavailable") {

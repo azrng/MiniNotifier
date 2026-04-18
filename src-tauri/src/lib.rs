@@ -15,6 +15,13 @@ use tauri::{
 use tauri_plugin_autostart::MacosLauncher;
 use tokio::time::sleep;
 
+#[cfg(windows)]
+use windows_sys::Win32::Graphics::Dwm::{
+    DwmSetWindowAttribute, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND,
+};
+#[cfg(windows)]
+use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn, SetWindowRgn};
+
 use crate::{
     commands::{
         dismiss_reminder, get_current_reminder_payload, get_hydration_settings,
@@ -34,6 +41,7 @@ pub fn run() {
             let state = AppState::new()
                 .map_err(|error| -> Box<dyn std::error::Error> { Box::new(error) })?;
             app.manage(state);
+            apply_window_chrome(app);
             build_tray(app)?;
             spawn_scheduler(app.handle().clone());
             Ok(())
@@ -48,15 +56,70 @@ pub fn run() {
             dismiss_reminder
         ])
         .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
-                if matches!(window.label(), "main" | "reminder") {
-                    api.prevent_close();
-                    let _ = window.hide();
+            if matches!(window.label(), "main" | "reminder") {
+                match event {
+                    WindowEvent::CloseRequested { api, .. } => {
+                        api.prevent_close();
+                        let _ = window.hide();
+                    }
+                    WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. }
+                        if window.label() == "reminder" =>
+                    {
+                        if let Some(webview_window) = window.app_handle().get_webview_window(window.label()) {
+                            apply_rounded_corners(&webview_window);
+                        }
+                    }
+                    _ => {}
                 }
             }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn apply_window_chrome(app: &tauri::App) {
+    #[cfg(windows)]
+    {
+        for label in ["reminder"] {
+            if let Some(window) = app.get_webview_window(label) {
+                apply_rounded_corners(&window);
+            }
+        }
+    }
+}
+
+#[cfg(windows)]
+fn apply_rounded_corners(window: &tauri::WebviewWindow) {
+    if let Ok(hwnd) = window.hwnd() {
+        let preference = DWMWCP_ROUND;
+        let _ = unsafe {
+            DwmSetWindowAttribute(
+                hwnd.0 as _,
+                DWMWA_WINDOW_CORNER_PREFERENCE as _,
+                &preference as *const _ as _,
+                std::mem::size_of_val(&preference) as u32,
+            )
+        };
+
+        if let Ok(size) = window.inner_size() {
+            let width = size.width as i32;
+            let height = size.height as i32;
+            if width > 0 && height > 0 {
+                let is_maximized = window.is_maximized().unwrap_or(false);
+                let radius = if is_maximized { 0 } else { 26 };
+
+                let region = unsafe {
+                    if radius > 0 {
+                        CreateRoundRectRgn(0, 0, width, height, radius, radius)
+                    } else {
+                        std::ptr::null_mut()
+                    }
+                };
+
+                let _ = unsafe { SetWindowRgn(hwnd.0 as _, region, true.into()) };
+            }
+        }
+    }
 }
 
 fn build_tray(app: &tauri::App) -> tauri::Result<()> {

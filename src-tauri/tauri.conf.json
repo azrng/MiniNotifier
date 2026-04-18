@@ -27,15 +27,15 @@
         "label": "reminder",
         "title": "MiniNotifier Reminder",
         "url": "/?window=reminder",
-        "width": 380,
-        "height": 240,
+        "width": 460,
+        "height": 320,
         "visible": false,
         "resizable": false,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
         "skipTaskbar": true,
-        "shadow": true
+        "shadow": false
       }
     ],
     "security": {
