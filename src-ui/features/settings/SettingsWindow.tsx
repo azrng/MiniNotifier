@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
@@ -46,13 +46,13 @@ function formatTime(value: string | null, fallback: string) {
   }).format(date);
 }
 
-function formatRelativeLabel(value: string | null) {
+function formatRelativeLabel(value: string | null, nowMs: number) {
   if (!value) {
     return "等待下一次计算";
   }
 
-  const diffMs = new Date(value).getTime() - Date.now();
-  const diffMinutes = Math.max(0, Math.round(diffMs / 60000));
+  const diffMs = new Date(value).getTime() - nowMs;
+  const diffMinutes = Math.max(0, Math.ceil(diffMs / 60000));
 
   if (diffMinutes <= 1) {
     return "即将提醒";
@@ -72,6 +72,9 @@ function createDefaultValues(settings?: HydrationSettings): HydrationSettingsFor
 
 export function SettingsWindow({ queryClient }: SettingsWindowProps) {
   const [showFirstRunPanel, setShowFirstRunPanel] = useState(true);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const hasHydratedFormRef = useRef(false);
+  const lastAppliedValuesRef = useRef<string | null>(null);
 
   const settingsQuery = useQuery({
     queryKey: SETTINGS_QUERY_KEY,
@@ -89,16 +92,39 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
     defaultValues: createDefaultValues()
   });
 
+  const applySettingsToForm = (settings: HydrationSettings) => {
+    const nextValues = createDefaultValues(settings);
+    form.reset(nextValues);
+    lastAppliedValuesRef.current = JSON.stringify(nextValues);
+  };
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 15000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     if (!settingsQuery.data) {
       return;
     }
 
-    form.reset(createDefaultValues(settingsQuery.data));
+    const nextValues = createDefaultValues(settingsQuery.data);
+    const nextSignature = JSON.stringify(nextValues);
+
+    if (!hasHydratedFormRef.current) {
+      applySettingsToForm(settingsQuery.data);
+      hasHydratedFormRef.current = true;
+    } else if (!form.formState.isDirty && lastAppliedValuesRef.current !== nextSignature) {
+      applySettingsToForm(settingsQuery.data);
+    }
+
     if (settingsQuery.data.saveStateText !== "已加载默认配置") {
       setShowFirstRunPanel(false);
     }
-  }, [form, settingsQuery.data]);
+  }, [form.formState.isDirty, settingsQuery.data]);
 
   useEffect(() => {
     const unlistenPromise = listen<HydrationSettings>("settings-updated", (event) => {
@@ -128,7 +154,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
     onSuccess: (result) => {
       queryClient.setQueryData(SETTINGS_QUERY_KEY, result);
       void queryClient.invalidateQueries({ queryKey: ACTIVITY_QUERY_KEY });
-      form.reset(createDefaultValues(result));
+      applySettingsToForm(result);
     }
   });
 
@@ -145,7 +171,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
     onSuccess: (result) => {
       queryClient.setQueryData(SETTINGS_QUERY_KEY, result);
       void queryClient.invalidateQueries({ queryKey: ACTIVITY_QUERY_KEY });
-      form.reset(createDefaultValues(result));
+      applySettingsToForm(result);
     }
   });
 
@@ -181,6 +207,8 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
       ? "后台调度已经停住，但你的配置仍会保留。"
       : "托盘、配置和下一次提醒时间会保持联动。";
   }, [settingsQuery.data]);
+
+  const hasUnsavedChanges = form.formState.isDirty;
 
   if (settingsQuery.isLoading) {
     return (
@@ -279,7 +307,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
                 accent="blue"
                 title="下次提醒"
                 value={formatTime(settings.nextReminderAt, "--:--")}
-                hint={formatRelativeLabel(settings.nextReminderAt)}
+                hint={formatRelativeLabel(settings.nextReminderAt, nowMs)}
               />
               <MetricCard
                 accent="green"
@@ -312,6 +340,9 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
                   <div className="rounded-2xl bg-brand-50 px-4 py-3 text-right text-sm text-brand-900">
                     <div className="text-xs uppercase tracking-[0.2em] text-brand-700">状态</div>
                     <div className="mt-1 font-semibold">{settings.isPaused ? "暂停中" : "运行中"}</div>
+                    <div className="mt-1 text-xs text-brand-700/80">
+                      {hasUnsavedChanges ? "有未保存修改" : "已与后台同步"}
+                    </div>
                   </div>
                 </div>
 
@@ -388,6 +419,12 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
                 {mutationError ? (
                   <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                     {mutationError.message}
+                  </div>
+                ) : null}
+
+                {hasUnsavedChanges ? (
+                  <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    你有未保存的修改。后台提醒状态会继续刷新，但不会覆盖当前表单输入。
                   </div>
                 ) : null}
 
