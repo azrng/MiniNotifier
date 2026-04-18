@@ -26,3 +26,33 @@ Copy-Item : Could not find a part of the path 'C:\Work\github\MiniNotifier\src-t
 - Related Files: src-tauri/icons/icon.ico
 
 ---
+
+## [ERR-20260418-002] git-add-removed-directory-pathspec
+
+**Logged**: 2026-04-18T00:00:00Z
+**Priority**: low
+**Status**: pending
+**Area**: infra
+
+### Summary
+对已按文件删除记录过的目录再次执行 `git add -u <dir>`，会出现 pathspec 不匹配错误。
+
+### Error
+```text
+error: pathspec 'src-tauri/gen' did not match any file(s) known to git
+error: pathspec 'src-tauri/target' did not match any file(s) known to git
+```
+
+### Context
+- Command/operation attempted: 清理 Tauri 生成产物后，对目录再次执行 `git add -u`
+- Input or parameters used: `git add -u src-tauri/gen src-tauri/target`
+- Environment details if relevant: Windows, Git
+
+### Suggested Fix
+删除目录内容后，优先用 `git add -u` 或 `git add -A` 处理整个工作区，不要再对已经不存在的目录路径重复点名。
+
+### Metadata
+- Reproducible: yes
+- Related Files: .gitignore
+
+---
