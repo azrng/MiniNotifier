@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MiniNotifier",
+  "version": "0.1.0",
+  "identifier": "com.mininotifier.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "MiniNotifier",
+        "url": "/",
+        "width": 1180,
+        "height": 820,
+        "minWidth": 920,
+        "minHeight": 720,
+        "visible": false,
+        "resizable": true,
+        "decorations": true
+      },
+      {
+        "label": "reminder",
+        "title": "MiniNotifier Reminder",
+        "url": "/?window=reminder",
+        "width": 380,
+        "height": 240,
+        "visible": false,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/icon.ico"
+    ]
+  }
+}
