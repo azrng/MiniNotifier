@@ -4,66 +4,72 @@
         x:Class="MiniNotifier.Avalonia.Views.ReminderWindow"
         x:DataType="vm:ReminderWindowViewModel"
         CanResize="False"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        TransparencyLevelHint="Transparent"
         ShowInTaskbar="False"
         SizeToContent="WidthAndHeight"
         WindowDecorations="None"
         Topmost="True"
         WindowStartupLocation="Manual">
-  <Border Margin="16"
-          Padding="{StaticResource Thickness.CardPadding}"
-          Background="{StaticResource Brush.Background.Glass}"
-          BorderBrush="{StaticResource Brush.Border.Subtle}"
-          BorderThickness="1"
-          CornerRadius="{StaticResource Radius.Large}">
-    <Grid MinWidth="328"
-          MaxWidth="420"
-          RowDefinitions="Auto,*,Auto"
-          RowSpacing="12">
-      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
-        <Border Width="42"
-                Height="42"
-                CornerRadius="{StaticResource Radius.Medium}"
-                Background="{StaticResource Brush.Background.Surface}">
-          <Image Width="22"
-                 Height="22"
-                 Source="/Assets/Icons/AppIcon.ico"
-                 Stretch="Uniform"
-                 HorizontalAlignment="Center"
-                 VerticalAlignment="Center" />
-        </Border>
+  <Border Padding="12"
+          Background="Transparent">
+    <Border Padding="{StaticResource Thickness.CardPadding}"
+            Background="{StaticResource Brush.Background.Glass}"
+            BorderBrush="{StaticResource Brush.Border.Subtle}"
+            BorderThickness="1"
+            ClipToBounds="True"
+            CornerRadius="{StaticResource Radius.Large}">
+      <Grid MinWidth="328"
+            MaxWidth="420"
+            RowDefinitions="Auto,*,Auto"
+            RowSpacing="12">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+          <Border Width="42"
+                  Height="42"
+                  CornerRadius="{StaticResource Radius.Medium}"
+                  Background="{StaticResource Brush.Background.Surface}">
+            <Image Width="22"
+                   Height="22"
+                   Source="/Assets/Icons/AppIcon.ico"
+                   Stretch="Uniform"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+          </Border>
 
-        <StackPanel Grid.Column="1"
-                    Spacing="4"
-                    MaxWidth="310">
+          <StackPanel Grid.Column="1"
+                      Spacing="4"
+                      MaxWidth="310">
+            <TextBlock Classes="caption"
+                       Text="{Binding Title}"
+                       TextWrapping="Wrap" />
+            <TextBlock Classes="hero-title"
+                       Text="{Binding Headline}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+
+        <ScrollViewer x:Name="MessageScrollViewer"
+                      Grid.Row="1"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      MinHeight="80"
+                      MaxHeight="120">
+          <TextBlock Classes="body"
+                     Text="{Binding Message}"
+                     TextWrapping="Wrap" />
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2"
+                    Spacing="10">
           <TextBlock Classes="caption"
-                     Text="{Binding Title}"
-                     TextWrapping="Wrap" />
-          <TextBlock Classes="hero-title"
-                     Text="{Binding Headline}"
-                     TextWrapping="Wrap" />
+                     Text="{Binding CountdownText}" />
+          <Button Classes="secondary-action"
+                  Command="{Binding DismissCommand}"
+                  Content="知道了"
+                  HorizontalAlignment="Right" />
         </StackPanel>
       </Grid>
-
-      <ScrollViewer x:Name="MessageScrollViewer"
-                    Grid.Row="1"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto"
-                    MinHeight="80"
-                    MaxHeight="120">
-        <TextBlock Classes="body"
-                   Text="{Binding Message}"
-                   TextWrapping="Wrap" />
-      </ScrollViewer>
-
-      <StackPanel Grid.Row="2"
-                  Spacing="10">
-        <TextBlock Classes="caption"
-                   Text="{Binding CountdownText}" />
-        <Button Classes="secondary-action"
-                Command="{Binding DismissCommand}"
-                Content="知道了"
-                HorizontalAlignment="Right" />
-      </StackPanel>
-    </Grid>
+    </Border>
   </Border>
 </Window>
