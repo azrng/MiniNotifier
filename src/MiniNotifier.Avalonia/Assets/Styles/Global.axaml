@@ -80,6 +80,14 @@
     <Setter Property="CornerRadius" Value="{StaticResource Radius.Medium}" />
   </Style>
 
+  <Style Selector="Border.setting-row">
+    <Setter Property="Background" Value="{StaticResource Brush.Background.App}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Subtle}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource Radius.Medium}" />
+    <Setter Property="Padding" Value="{StaticResource Thickness.CardPadding.Compact}" />
+  </Style>
+
   <Style Selector="Border.footer-card">
     <Setter Property="Background" Value="{StaticResource Brush.Background.Glass}" />
     <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Subtle}" />
@@ -115,6 +123,11 @@
     <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.Subtle}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Padding" Value="16,10" />
+  </Style>
+
+  <Style Selector="Button.action-fill">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
   </Style>
 
   <Style Selector="TextBox">
