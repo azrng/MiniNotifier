@@ -14,6 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <TrimmerRootDescriptor Include="Roots.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 

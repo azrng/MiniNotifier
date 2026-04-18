@@ -344,5 +344,6 @@ healthchecksdb
 
 .cr
 *.xml
+!src/MiniNotifier.Avalonia/Roots.xml
 .claude
 dist

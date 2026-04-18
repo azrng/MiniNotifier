@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <!--
+    Native AOT / trimming keep-alive list.
+    If future features introduce reflection-heavy dependencies,
+    extend this file instead of scattering attributes across unrelated types.
+  -->
+  <assembly fullname="MiniNotifier.Avalonia">
+    <type fullname="MiniNotifier.Avalonia.App" preserve="all" />
+    <type fullname="MiniNotifier.Avalonia.Program" preserve="all" />
+    <type fullname="MiniNotifier.Avalonia.Views.MainWindow" preserve="all" />
+    <type fullname="MiniNotifier.Avalonia.Views.ReminderWindow" preserve="all" />
+    <type fullname="MiniNotifier.Avalonia.ViewModels.MainWindowViewModel" preserve="all" />
+    <type fullname="MiniNotifier.Avalonia.ViewModels.ReminderWindowViewModel" preserve="all" />
+    <type fullname="MiniNotifier.Models.Entities.HydrationSettingsDocument" preserve="all" />
+    <type fullname="MiniNotifier.Models.Serialization.HydrationSettingsJsonContext" preserve="all" />
+  </assembly>
+</linker>
