@@ -25,8 +25,21 @@ env:
   PUBLISH_TARGET: 'tauri'
 
 jobs:
+  resolve_publish_target:
+    runs-on: windows-latest
+    outputs:
+      publish_target: ${{ steps.resolve.outputs.publish_target }}
+
+    steps:
+    - name: Resolve publish target
+      id: resolve
+      shell: pwsh
+      run: |
+        "publish_target=$env:PUBLISH_TARGET" >> $env:GITHUB_OUTPUT
+
   build-wpf:
-    if: ${{ env.PUBLISH_TARGET == 'wpf' }}
+    needs: resolve_publish_target
+    if: ${{ needs.resolve_publish_target.outputs.publish_target == 'wpf' }}
     runs-on: windows-latest
 
     steps:
@@ -145,7 +158,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-tauri:
-    if: ${{ env.PUBLISH_TARGET == 'tauri' }}
+    needs: resolve_publish_target
+    if: ${{ needs.resolve_publish_target.outputs.publish_target == 'tauri' }}
     runs-on: windows-latest
 
     steps:
