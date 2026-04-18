@@ -53,11 +53,8 @@
 
     <Grid Grid.Row="1" ClipToBounds="True">
       <Grid IsVisible="{Binding IsContentVisible}"
-            RowDefinitions="*,Auto"
-            RowSpacing="18"
             ClipToBounds="True">
-        <Grid Grid.Row="0"
-              ColumnDefinitions="*,320"
+        <Grid ColumnDefinitions="*,320"
               ColumnSpacing="18"
               ClipToBounds="True">
           <ScrollViewer Grid.Column="0"
@@ -152,6 +149,8 @@
                   <Button Classes="primary-action" Command="{Binding SaveCommand}" Content="保存设置" />
                   <Button Classes="secondary-action" Command="{Binding TestReminderCommand}" Content="立即提醒一次" />
                   <Button Classes="secondary-action" Command="{Binding TogglePauseCommand}" Content="{Binding PauseButtonText}" />
+                  <Button Classes="quiet-action" Command="{Binding ExitApplicationCommand}" Content="退出应用" />
+                  <TextBlock Classes="caption" Text="{Binding StatusMessageText}" TextWrapping="Wrap" />
                 </StackPanel>
               </Border>
 
@@ -165,18 +164,6 @@
             </StackPanel>
           </ScrollViewer>
         </Grid>
-
-        <Border Grid.Row="1"
-                Classes="footer-card"
-                Padding="{StaticResource Thickness.CardPadding.Compact}">
-          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-            <StackPanel Spacing="6">
-              <TextBlock Classes="caption" Text="状态提示" />
-              <TextBlock Classes="body" Text="{Binding StatusMessageText}" TextWrapping="Wrap" />
-            </StackPanel>
-            <Button Grid.Column="1" Classes="quiet-action" Command="{Binding ExitApplicationCommand}" Content="退出应用" VerticalAlignment="Center" />
-          </Grid>
-        </Border>
       </Grid>
 
       <Border IsVisible="{Binding IsLoadingVisible}" Classes="state-card">
