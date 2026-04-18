@@ -73,6 +73,11 @@ public partial class App : Application
 
             await mainWindowViewModel.InitializeAsync();
 
+            if (!IsBackgroundStartup(desktop.Args))
+            {
+                windowManager.ShowSettingsWindow();
+            }
+
             _host.Services.GetRequiredService<IReminderSchedulerService>().Initialize();
         }
 
@@ -100,5 +105,10 @@ public partial class App : Application
     private void OnSingleInstanceActivationRequested(object? sender, EventArgs e)
     {
         _host?.Services.GetService<IWindowManager>()?.ShowSettingsWindow();
+    }
+
+    private static bool IsBackgroundStartup(IEnumerable<string>? args)
+    {
+        return args?.Contains("--background", StringComparer.OrdinalIgnoreCase) == true;
     }
 }

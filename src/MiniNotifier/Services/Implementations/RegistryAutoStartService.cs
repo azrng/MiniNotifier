@@ -57,6 +57,6 @@ public sealed class RegistryAutoStartService : IAutoStartService
             throw new InvalidOperationException("无法确定当前程序路径，无法设置开机自启动。");
         }
 
-        return $"\"{processPath}\"";
+        return $"\"{processPath}\" --background";
     }
 }
