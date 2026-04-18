@@ -69,19 +69,17 @@ dotnet build MiniNotifier.slnx
 
 ## CI / 发布产物
 
-当前 `.github/workflows/build.yml` 按分支拆分发布链路：
+当前 `.github/workflows/build.yml` 使用固定发布目标开关控制产物类型：
 
-- `main`
-  - 继续发布 WPF ZIP 包
-  - 产物包括：
+- 在 `.github/workflows/build.yml` 顶部修改 `PUBLISH_TARGET`
+  - `wpf`：发布 WPF ZIP 包
     - `MiniNotifier-win-x64.zip`
     - `MiniNotifier-win-x86.zip`
     - `MiniNotifier-framework-dependent.zip`
-- `tauri-rust` / `feat/tauri-rust`
-  - 发布 Tauri 安装包
-  - 产物包括：
+  - `tauri`：发布 Tauri 安装包
     - `src-tauri/target/release/bundle/msi/*.msi`
     - `src-tauri/target/release/bundle/nsis/*.exe`
+- 当前默认值为 `tauri`，后续可按需要手动切换。
 
 ## 迁移约定
 
