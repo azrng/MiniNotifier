@@ -155,3 +155,63 @@ fn work_state_label(work_state: WorkIntensityState) -> &'static str {
         WorkIntensityState::RapidFire => "高速切换",
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolve_work_state_maps_deep_focus() {
+        assert!(matches!(
+            resolve_work_state(0, 0),
+            WorkIntensityState::DeepFocus
+        ));
+        assert!(matches!(
+            resolve_work_state(2, 10),
+            WorkIntensityState::DeepFocus
+        ));
+    }
+
+    #[test]
+    fn resolve_work_state_maps_active_handling() {
+        assert!(matches!(
+            resolve_work_state(12, 20),
+            WorkIntensityState::ActiveHandling
+        ));
+        assert!(matches!(
+            resolve_work_state(8, 45),
+            WorkIntensityState::ActiveHandling
+        ));
+    }
+
+    #[test]
+    fn resolve_work_state_maps_rapid_fire() {
+        assert!(matches!(
+            resolve_work_state(30, 20),
+            WorkIntensityState::RapidFire
+        ));
+        assert!(matches!(
+            resolve_work_state(10, 110),
+            WorkIntensityState::RapidFire
+        ));
+    }
+
+    #[test]
+    fn resolve_work_state_maps_steady_flow() {
+        assert!(matches!(
+            resolve_work_state(5, 20),
+            WorkIntensityState::SteadyFlow
+        ));
+    }
+
+    #[test]
+    fn work_state_label_matches_ui_copy() {
+        assert_eq!(work_state_label(WorkIntensityState::DeepFocus), "深度专注");
+        assert_eq!(work_state_label(WorkIntensityState::SteadyFlow), "平稳推进");
+        assert_eq!(
+            work_state_label(WorkIntensityState::ActiveHandling),
+            "高频处理"
+        );
+        assert_eq!(work_state_label(WorkIntensityState::RapidFire), "高速切换");
+    }
+}

@@ -157,9 +157,10 @@ fn spawn_scheduler(app: AppHandle) {
             let state = app.state::<AppState>();
             let state = state.inner();
             if state.settings.is_due() {
-                let _ = state
-                    .reminders
-                    .show_scheduled(&app, &state.settings, &state.mouse_activity);
+                let _ =
+                    state
+                        .reminders
+                        .show_scheduled(&app, &state.settings, &state.mouse_activity);
                 update_tray_tooltip(app.clone());
             }
         }

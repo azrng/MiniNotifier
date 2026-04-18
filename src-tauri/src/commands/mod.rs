@@ -30,7 +30,11 @@ pub fn toggle_hydration_pause(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<HydrationSettingsDto, CommandError> {
-    state.inner().settings.toggle_pause(&app).map_err(Into::into)
+    state
+        .inner()
+        .settings
+        .toggle_pause(&app)
+        .map_err(Into::into)
 }
 
 #[tauri::command]
