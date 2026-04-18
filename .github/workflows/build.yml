@@ -12,7 +12,9 @@ permissions:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  PROJECT_PATH: 'src/MiniNotifier/MiniNotifier.csproj'
+  PROJECT_PATH: 'src/MiniNotifier.Avalonia/MiniNotifier.Avalonia.csproj'
+  PUBLISH_PROFILE: 'NativeAot-win-x64'
+  PUBLISH_OUTPUT: 'src/MiniNotifier.Avalonia/bin/Release/net10.0-windows10.0.19041.0/publish/win-x64-aot'
   APP_NAME: 'MiniNotifier'
 
 jobs:
@@ -46,74 +48,23 @@ jobs:
         "tag_name=$tag" >> $env:GITHUB_OUTPUT
         "release_name=$releaseName" >> $env:GITHUB_OUTPUT
 
-    - name: Publish Windows x64
+    - name: Publish Windows x64 Native AOT
       shell: pwsh
       run: |
         dotnet publish ${{ env.PROJECT_PATH }} `
           --configuration Release `
-          --runtime win-x64 `
-          --self-contained true `
-          --output publish/win-x64 `
-          -p:PublishSingleFile=true `
-          -p:IncludeNativeLibrariesForSelfExtract=true `
-          -p:EnableCompressionInSingleFile=true `
-          -p:DebugType=embedded `
-          -p:PublishReadyToRun=false `
-          -p:PublishTrimmed=false
-
-    - name: Publish Windows x86
-      shell: pwsh
-      run: |
-        dotnet publish ${{ env.PROJECT_PATH }} `
-          --configuration Release `
-          --runtime win-x86 `
-          --self-contained true `
-          --output publish/win-x86 `
-          -p:PublishSingleFile=true `
-          -p:IncludeNativeLibrariesForSelfExtract=true `
-          -p:EnableCompressionInSingleFile=true `
-          -p:DebugType=embedded `
-          -p:PublishReadyToRun=false `
-          -p:PublishTrimmed=false
-
-    - name: Publish Framework-Dependent
-      shell: pwsh
-      run: |
-        dotnet publish ${{ env.PROJECT_PATH }} `
-          --configuration Release `
-          --self-contained false `
-          --output publish/framework-dependent `
-          -p:PublishSingleFile=false `
-          -p:DebugType=embedded `
-          -p:PublishReadyToRun=false `
-          -p:PublishTrimmed=false
+          /p:PublishProfile=${{ env.PUBLISH_PROFILE }}
 
     - name: Create ZIP packages
       shell: pwsh
       run: |
-        Compress-Archive -Path publish/win-x64/* -DestinationPath MiniNotifier-win-x64.zip
-        Compress-Archive -Path publish/win-x86/* -DestinationPath MiniNotifier-win-x86.zip
-        Compress-Archive -Path publish/framework-dependent/* -DestinationPath MiniNotifier-framework-dependent.zip
+        Compress-Archive -Path "${{ env.PUBLISH_OUTPUT }}/*" -DestinationPath MiniNotifier-win-x64-aot.zip
 
-    - name: Upload artifacts - x64
+    - name: Upload artifacts - win-x64-aot
       uses: actions/upload-artifact@v4
       with:
-        name: MiniNotifier-win-x64
-        path: MiniNotifier-win-x64.zip
-        retention-days: 30
-
-    - name: Upload artifacts - x86
-      uses: actions/upload-artifact@v4
-      with:
-        name: MiniNotifier-win-x86
-        path: MiniNotifier-win-x86.zip
-        retention-days: 30
-
-    - name: Upload artifacts - framework-dependent
-      uses: actions/upload-artifact@v4
-      with:
-        name: MiniNotifier-framework-dependent
-        path: MiniNotifier-framework-dependent.zip
+        name: MiniNotifier-win-x64-aot
+        path: MiniNotifier-win-x64-aot.zip
         retention-days: 30
 
     - name: Create release
@@ -124,9 +75,7 @@ jobs:
         name: ${{ steps.release_meta.outputs.release_name }}
         target_commitish: ${{ github.sha }}
         files: |
-          MiniNotifier-win-x64.zip
-          MiniNotifier-win-x86.zip
-          MiniNotifier-framework-dependent.zip
+          MiniNotifier-win-x64-aot.zip
         draft: false
         prerelease: false
         generate_release_notes: true

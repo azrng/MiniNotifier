@@ -17,3 +17,4 @@
 
 - 2026-04-18：为 `T004` 补充 Avalonia Native AOT 的 `Roots.xml` 保留清单，并重新验证 `win-x64` 发布链路。
 - 2026-04-18：为 `T004` 新增 `win-x64 Native AOT` 发布配置，统一本地与后续 CI 的发布入口。
+- 2026-04-18：将 GitHub Actions 打包链路切换到 Avalonia `win-x64 Native AOT` profile，开始替换旧 WPF 发布产物。
