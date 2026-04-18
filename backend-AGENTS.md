@@ -1,7 +1,7 @@
 ---
 rule_id: backend-agents
-version: 1.2.0
-last_updated: 2026-04-16
+version: 1.3.0
+last_updated: 2026-04-18
 dependencies: [agents-root]
 ---
 
@@ -29,13 +29,16 @@ dependencies: [agents-root]
 
 ### Runtime
 - Tauri 2 + Rust
-- Tokio（异步运行时）
+- Tokio（仅在异步 I/O、后台任务或插件能力需要时使用）
 - Tauri Command / event / plugin 体系
 
 ### 数据与本地能力
-- 本地持久化默认推荐：SQLite
-- 数据访问默认推荐：`sqlx + SQLite`
-- 若仓库已稳定使用 `rusqlite` 且迁移收益不高，可沿用现有实现，不强行替换
+- 本地持久化默认推荐：`tauri-plugin-store`、JSON 或其他简单文件存储
+- 仅在以下场景默认考虑 SQLite：
+  - 需要提醒历史、日志检索或统计分析
+  - 需要多实体关系、条件查询、分页或排序
+  - 需要事务、并发读写控制或后续明确扩展为较复杂本地数据模型
+- 若确需 SQLite，再在 `sqlx + SQLite` 与 `rusqlite` 间按团队熟悉度、异步需求和迁移成本选择，不预设必须使用某一套
 - 配置、日志、缓存、用户目录读写统一通过 Tauri 与 Rust 侧封装处理
 
 ### 通信原则
@@ -73,10 +76,11 @@ src-tauri/
 ├── src/
 │   ├── commands/            # Tauri Command 入口
 │   ├── services/            # 业务服务
-│   ├── repositories/        # 数据访问层
+│   ├── stores/              # JSON / Store / SQLite 等持久化访问
+│   ├── repositories/        # 仅在存在数据库查询模型时使用
 │   ├── models/              # 领域模型与 DTO
-│   ├── db/                  # 数据库连接、migration、查询辅助
-│   ├── integrations/        # 外部系统与系统能力封装
+│   ├── db/                  # 仅在启用数据库时使用
+│   ├── integrations/        # 托盘、自启动、窗口、通知、全局监听等系统能力封装
 │   ├── errors/              # 统一错误类型
 │   ├── state/               # AppState / 共享状态
 │   ├── config/              # 配置加载
@@ -96,9 +100,11 @@ src-tauri/
 
 **入场要求**：前端页面结构已完成，schema 与契约清晰
 
+对系统集成型桌面应用，若关键原生能力尚未验证，可先进行“原生能力 spike / 验证”，确认托盘、自启动、提醒弹窗、后台调度、全局监听等能力可稳定落地后，再冻结前端契约。
+
 **工作内容**：
-1. 按 `Command -> Service -> Repository -> SQLite / Local Capability` 分层实现本地能力。
-2. 根据需求维护本地数据库 schema、迁移脚本、配置读写与文件目录约束。
+1. 按 `Command -> Service -> Store / Repository / Integration` 分层实现本地能力。
+2. 根据需求维护配置读写、文件目录约束，以及在确实启用数据库时再维护 schema 与迁移脚本。
 3. 完成权限、日志、缓存、状态流转、分页、筛选、排序等 Rust 侧逻辑。
 4. 每个核心能力都必须可通过前端联调、测试或脚本独立验证。
 
@@ -115,10 +121,11 @@ src-tauri/
 Tauri Command / Event
           ↓
        Service
-          ↓
-     Repository
-          ↓
- SQLite / FileSystem / External Capability
+     ↙    ↓    ↘
+ Store  Repository  Integration
+   ↓        ↓          ↓
+JSON /   SQLite     Tray / AutoStart /
+Store    等数据源   Window / Hook / Notification
 ```
 
 ### Command 规则
@@ -136,8 +143,9 @@ Tauri Command / Event
 
 ### Repository / 数据访问规则
 - 数据访问不得出现在 Command 或前端代码中
+- 仅在存在数据库或复杂查询模型时引入 Repository；简单配置读写优先放到 `stores/` 或等价目录
 - 复杂查询、分页、排序、条件拼装收敛到 Repository
-- 默认使用 migration 管理 schema 变更，不依赖启动时隐式改表
+- 若启用 SQLite，默认使用 migration 管理 schema 变更，不依赖启动时隐式改表
 - SQLite 表与字段命名统一使用 snake_case
 - schema 变更后必须同步 migration、类型和文档
 
@@ -156,6 +164,15 @@ Tauri Command / Event
 - DTO 与前端 schema 尽量一一对应，避免一边 `camelCase` 一边 `snake_case` 无规则混用
 - 若仓库已经通过 TS 类型生成或共享 schema 维护契约，优先沿用，不重复造一套平行定义
 - 新增或修改 Command 时，同步更新前端封装层与文档
+
+### 系统集成优先级
+- 对当前这类托盘提醒工具，优先先做以下原生能力验证，再决定前端契约冻结时点：
+  - 托盘菜单与窗口唤起
+  - 开机自启动
+  - 提醒弹窗窗口
+  - 后台定时调度
+  - 全局鼠标或输入监听
+- 若某项关键能力在 Tauri / Rust 下不可接受，应先调整迁移方案，而不是继续扩展页面层
 
 ### 异常处理规范
 - 自定义业务异常统一收敛到 `errors/`
@@ -176,7 +193,7 @@ Tauri Command / Event
 - 默认执行：项目现有的格式化、静态检查或编译校验
 - Service 改动：至少补一项业务规则、权限判断或状态流转验证
 - Command 改动：至少补一项输入输出、错误分支或前后端契约验证
-- Repository / SQLite 改动：至少补一项查询结果、事务、migration 或路径写入验证
+- Store / Repository / SQLite 改动：至少补一项配置读写、查询结果、事务、migration 或路径写入验证
 - 若仓库暂时缺少自动化测试基础，可使用前端联调、集成脚本或等价验证替代，但必须能证明核心逻辑真实生效
 
 ### Rust / Tauri 测试

@@ -1,7 +1,7 @@
 ---
 rule_id: agents-root
-version: 1.2.0
-last_updated: 2026-04-16
+version: 1.3.0
+last_updated: 2026-04-18
 dependencies: []
 ---
 
@@ -10,19 +10,25 @@ dependencies: []
 ## 目标
 - `AGENTS.md`：只保留全局协作规范、阶段门控、任务机制、交付要求与子规则导航
 - `frontend-AGENTS.md`：页面、布局、组件、路由、状态、样式、前端测试
-- `backend-AGENTS.md`：Tauri Command、Rust 服务、数据访问、本地能力、后端测试
+- `backend-AGENTS.md`：Tauri Command、Rust 服务、持久化、本地能力、后端测试
 - `doc-AGENTS.md`：设计文档、契约说明、设计系统、`doc/devlog/`
 - `infra-AGENTS.md`：环境变量、构建、签名、打包、更新与交付验证
 - `CLAUDE.md` / `GEMINI.md`：入口提示文件，只提醒先读 `AGENTS.md`
 - `design-system.yaml`：设计 token 与 UI 规范
 - `TASK.md`：唯一活动任务记录文件
 
+## 当前实现与迁移目标
+- 当前仓库的真实实现仍以现有 WPF / .NET 代码为准；在 `src-tauri/`、前端工程或迁移脚手架尚未落地前，不得把仓库误判为已完成 Tauri 迁移的新项目。
+- `frontend-AGENTS.md`、`backend-AGENTS.md`、`infra-AGENTS.md` 描述的是**迁移目标状态与迁移过程规则**，不是对当前 WPF 代码的回溯性重构要求。
+- 迁移时遵循“先保留可用能力，再逐步替换实现”的原则；现有 WPF 能稳定工作的功能，在没有明确收益前不因技术偏好强制重写。
+- 对本项目这类系统集成型桌面应用，迁移优先级通常是：托盘、自启动、提醒弹窗、窗口唤起、全局监听等原生能力先确认可行，再冻结前端契约和页面结构。
+
 ---
 
 ## 快速命中卡片
 - 只改规则、文档、设计说明：读 `doc-AGENTS.md`
 - 改页面、布局、表单、样式、交互：读 `frontend-AGENTS.md`
-- 改 Tauri Command、Rust 服务、SQLite、本地文件或系统集成：读 `backend-AGENTS.md`
+- 改 Tauri Command、Rust 服务、JSON / Store / SQLite、本地文件或系统集成：读 `backend-AGENTS.md`
 - 改构建、签名、打包、更新、环境变量：读 `infra-AGENTS.md`
 - 跨前后端联调或发布：至少同时读当前文件和命中的两个子规则
 - 若只是很小的文案、样式或规则修订，命中后只读对应子规则的相关段落，不必通读全文
@@ -64,7 +70,7 @@ dependencies: []
 | 文件 | 适用范围 | 何时阅读 |
 | --- | --- | --- |
 | `frontend-AGENTS.md` | 页面、布局、表单、交互、样式、前端 smoke test | 涉及 React 界面实现与交互时 |
-| `backend-AGENTS.md` | Tauri Command、Rust 服务、SQLite、本地文件、系统能力、后端测试 | 涉及 `src-tauri/` 或本地能力实现时 |
+| `backend-AGENTS.md` | Tauri Command、Rust 服务、JSON / Store / SQLite、本地文件、系统能力、后端测试 | 涉及 `src-tauri/` 或本地能力实现时 |
 | `doc-AGENTS.md` | 设计文档、契约说明、`design-system.yaml`、`doc/devlog/`、`doc/task-archive/` | 涉及阶段 0、文档维护或设计系统时 |
 | `infra-AGENTS.md` | 环境变量、签名、构建、打包、自动更新与交付链路 | 涉及发布、打包、环境变量或交付链路时 |
 
@@ -92,6 +98,10 @@ dependencies: []
   - 配置、环境变量、签名或打包脚本调整
   - 单个字段增删改，且不引入新页面或新业务流程
 - 除上述场景外，各阶段必须满足入场条件后方可进入下一阶段
+- 对系统集成型桌面应用，若涉及托盘、自启动、窗口生命周期、全局输入监听、系统通知或后台调度，可在阶段 1 前先执行一次“原生能力 spike / 验证”：
+  - 目标是确认 Tauri / Rust 能否稳定承载关键系统能力
+  - spike 未通过前，不冻结前端契约，不大规模铺设页面
+  - spike 结论需写入设计文档或 devlog，作为后续阶段依据
 
 ### 阶段职责
 - 阶段 0：需求整理、设计文档、契约说明，细则见 `doc-AGENTS.md`
@@ -105,6 +115,8 @@ dependencies: []
 - 先理解，再修改；不要基于猜测改代码
 - 优先通过日志、数据、断点、测试等证据定位问题
 - 先复用，再新增；不新增平行配置体系，不绕过现有架构
+- 迁移到 Tauri 时优先选择满足需求的最小技术栈，不把“像 Web 全栈项目一样完整铺栈”当成默认目标
+- 当前业务以单机托盘提醒和少量设置为主时，默认优先简单持久化（如 JSON / Store）；只有在出现历史记录、多实体关系、复杂查询或统计需求时，才默认升级到 SQLite
 - 涉及新增、修改、删除等业务逻辑时，必须能真实生效并持久化；若当前阶段允许 mock，需在后续阶段补全真实链路
 - 输出保持简洁，但分析、实现、验证要完整
 - 已确认无变更风险的文件无需重复阅读；出现上下文缺口时必须补读

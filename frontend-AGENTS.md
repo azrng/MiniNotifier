@@ -1,7 +1,7 @@
 ---
 rule_id: frontend-agents
-version: 1.2.0
-last_updated: 2026-04-16
+version: 1.3.0
+last_updated: 2026-04-18
 dependencies: [agents-root]
 ---
 
@@ -29,12 +29,14 @@ dependencies: [agents-root]
 
 ### 前端
 - React + TypeScript + Vite
-- Tailwind CSS（唯一样式体系）
-- Radix UI Primitive + `class-variance-authority` + `clsx` / `tailwind-merge`（推荐的组件基础设施）
-- React Router（页面与导航）
-- TanStack Query（异步数据状态）
-- React Hook Form + Zod（表单与校验）
-- Zustand（仅用于客户端跨组件共享状态）
+- 样式体系默认推荐：Tailwind CSS；若仓库后续已稳定使用其他单一方案，以现状为准，不并行引入第二套体系
+- 表单与校验默认推荐：React Hook Form + Zod
+- 路由、异步状态、全局状态按需引入：
+  - 单窗口、单设置页或少量面板：可先不引入 React Router
+  - 本地少量 Command 读写：可先不引入 TanStack Query
+  - 轻量共享 UI 状态：可先用 React state / context，不默认引入 Zustand
+- 若项目后续扩展为多页面、多列表、多筛选、多表单，再评估引入 React Router、TanStack Query、Zustand
+- 组件基础设施优先保持克制；只有在出现明确复用收益时，再引入 Radix UI Primitive、`class-variance-authority`、`clsx`、`tailwind-merge`
 - `@tauri-apps/api`（与 Tauri Runtime 通信）
 
 ### 测试
@@ -69,19 +71,19 @@ dependencies: [agents-root]
 
 ```text
 src/
-├── app/                      # 路由与应用级入口
+├── app/                      # 应用级入口与壳层
 ├── components/
-│   ├── ui/                   # 基于 Radix / cva 的基础组件
+│   ├── ui/                   # 基础组件
 │   ├── layout/               # 布局组件
 │   └── business/             # 业务组件
 ├── features/                 # 按业务域收敛
 ├── hooks/                    # 自定义 Hook
-├── routes/                   # 路由定义
+├── routes/                   # 路由定义（仅在存在多页面时启用）
 ├── lib/
 │   ├── tauri/                # Tauri API 封装
-│   ├── query/                # TanStack Query 封装
+│   ├── query/                # TanStack Query 封装（按需）
 │   └── utils/                # 工具函数
-├── stores/                   # Zustand store
+├── stores/                   # 全局状态（按需）
 ├── schemas/                  # Zod schema
 ├── styles/                   # 全局样式与 token 映射
 ├── types/                    # TypeScript 类型
@@ -102,7 +104,7 @@ src/
 1. 基于 React + Vite 实现页面、布局、组件与导航结构。
 2. 页面内允许先用 mock 数据、假 Command 响应或本地 fixture 演示交互。
 3. 同步产出前端契约说明：字段定义、筛选条件、分页参数、表单校验规则、权限要求。
-4. 只要仓库未明确采用别的组件体系，优先走“Tailwind + Radix / shadcn 风格组件”的收敛路线。
+4. 只要仓库未明确采用别的组件体系，优先保持单一、克制的组件方案；对当前这类小型桌面工具，不默认为了“完整 UI 基建”一次性铺满 Router / Query / Store / Primitive 全家桶。
 
 **门控规则**：
 - 用户确认页面符合设计文档预期。
@@ -114,13 +116,17 @@ src/
 
 ### React / 路由规范
 - 函数组件 + Hooks 是唯一写法，禁止 class 组件
-- 路由配置集中在 `routes/` 或 `app/`，目录命名必须表达业务语义
-- 页面跳转统一通过 React Router 提供的 API 完成
+- 引入路由后，路由配置集中在 `routes/` 或 `app/`，目录命名必须表达业务语义
+- 若项目已启用 React Router，页面跳转统一通过 React Router 提供的 API 完成
 - 页面级逻辑优先收敛在业务目录，不要把跨页面逻辑散落在全局
 - 可复用逻辑放在 `hooks/`，优先按业务域收敛
 
 ### 数据获取与状态管理
-- 异步数据默认优先使用 TanStack Query
+- 异步数据在满足以下任一条件时优先使用 TanStack Query：
+  - 存在列表刷新、缓存失效、重试、后台同步等需求
+  - 需要多个页面或组件共享同一批远端或原生命令数据
+  - 数据获取链路已明显超出单次读取和简单表单提交
+- 若只是单页设置读写、少量 Command 调用或一次性初始化加载，可先使用组件级状态与自定义 hook
 - Query Key 使用稳定命名，禁止在组件内部临时拼字符串做缓存键
 - 写操作优先封装成 mutation，再由 mutation 触发刷新或失效处理
 - Zustand 仅用于主题、窗口状态、轻量全局筛选、全局通知、临时会话上下文等纯客户端状态
@@ -132,6 +138,10 @@ src/
 - Command 参数与返回值应先经过 TypeScript 类型与 Zod schema 约束
 - 除非明确需要，否则不要在 Tauri 桌面应用里再额外引入本地 HTTP 服务作为前后端桥接层
 - 若确实需要流式处理、WebSocket、嵌入式代理等能力，再单独论证是否引入额外服务层
+
+### 桌面工具优先级
+- 对当前这类托盘提醒工具，前端优先服务于设置页、状态展示和少量交互，不为了“像完整 Web 应用”而过早引入复杂路由层和缓存层
+- 若原生能力验证尚未完成，页面实现优先做壳层和契约演示，不先大规模扩展页面和全局状态
 
 ### 表单规则
 - 表单优先使用 React Hook Form + Zod
