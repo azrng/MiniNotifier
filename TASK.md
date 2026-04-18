@@ -22,3 +22,6 @@
 - 2026-04-18：为 Avalonia 新增 `win-x64 Single File` 发布配置，并让 CI 同时产出 `AOT` 与 `单 exe` 两种包。
 - 2026-04-18：清理 Avalonia 发布目录中的 `.pdb` 符号文件，确保 `Single File` 档位目录最终只保留一个 exe。
 - 2026-04-18：修复 Avalonia 主窗口右侧卡片在小高度下遮挡底部状态栏的问题。
+- 2026-04-18：补齐 Avalonia 提醒弹窗的布局与中文默认文案，对齐旧 WPF 弹窗体验。
+- 2026-04-18：为 Avalonia AOT 档位接入 `PublishAotCompressed` 并启用 `OptimizationPreference=Size`，进一步压缩发布体积。
+- 2026-04-18：调整 AOT 发布包生成方式，默认从 ZIP 中排除 `.pdb` 符号文件，避免影响最终交付体积。

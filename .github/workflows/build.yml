@@ -93,7 +93,12 @@ jobs:
     - name: Create ZIP packages
       shell: pwsh
       run: |
-        Compress-Archive -Path "${{ env.AOT_OUTPUT }}/*" -DestinationPath MiniNotifier-win-x64-aot.zip
+        $aotFiles = Get-ChildItem -Path "${{ env.AOT_OUTPUT }}" -File | Where-Object { $_.Extension -ne '.pdb' } | Select-Object -ExpandProperty FullName
+        if (-not $aotFiles) {
+          throw "No distributable files found for AOT ZIP packaging."
+        }
+
+        Compress-Archive -Path $aotFiles -DestinationPath MiniNotifier-win-x64-aot.zip
         Compress-Archive -Path "${{ env.SINGLE_FILE_OUTPUT }}/*" -DestinationPath MiniNotifier-win-x64-single-file.zip
 
     - name: Verify ZIP packages
@@ -105,6 +110,17 @@ jobs:
           }
 
           Get-Item $zipPath | Format-List FullName,Length,LastWriteTime
+        }
+
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $aotZip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path "MiniNotifier-win-x64-aot.zip"))
+        try {
+          if ($aotZip.Entries.FullName -match '\.pdb$') {
+            throw "AOT release ZIP should not contain .pdb files."
+          }
+        }
+        finally {
+          $aotZip.Dispose()
         }
 
     - name: Upload artifacts - win-x64-aot

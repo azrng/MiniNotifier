@@ -21,9 +21,19 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
-  <Target Name="RemoveReleasePublishSymbols"
+  <Target Name="RemoveSingleFilePublishSymbols"
           AfterTargets="Publish"
-          Condition="'$(PublishProfile)' == 'NativeAot-win-x64' or '$(PublishProfile)' == 'SingleFile-win-x64'">
+          Condition="'$(PublishProfile)' == 'SingleFile-win-x64'">
+    <ItemGroup>
+      <PublishedSymbols Include="$(PublishDir)*.pdb" />
+    </ItemGroup>
+
+    <Delete Files="@(PublishedSymbols)" />
+  </Target>
+
+  <Target Name="RemoveAotPublishSymbols"
+          AfterTargets="_CopyAotSymbols"
+          Condition="'$(PublishProfile)' == 'NativeAot-win-x64'">
     <ItemGroup>
       <PublishedSymbols Include="$(PublishDir)*.pdb" />
     </ItemGroup>
@@ -41,6 +51,7 @@
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+    <PackageReference Condition="'$(Configuration)' == 'Release'" Include="PublishAotCompressed" Version="1.0.5" />
   </ItemGroup>
 
   <ItemGroup>
