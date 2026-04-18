@@ -401,73 +401,6 @@ public sealed class ReminderMessageService : IReminderMessageService
             "这一口不求热血，只求舒服。"
         ]);
 
-    private static readonly MessageCatalog PausedPreviewCatalog = new(
-        Titles:
-        [
-            "预览提醒",
-            "暂停模式预览",
-            "小窗演示",
-            "静音预览",
-            "界面预演",
-            "弹窗彩排",
-            "演示提醒",
-            "预览模式",
-            "提醒试播",
-            "小范围试运行"
-        ],
-        Headlines:
-        [
-            "虽然你暂停了，但水杯没记仇",
-            "系统没有催你，这次只是演示一下",
-            "现在是预览时间，不是强制任务",
-            "这条只是出来打个招呼",
-            "提醒暂停中，但界面还是想秀一下自己",
-            "这是一条低压力的预览弹窗",
-            "放心，这次不是正式催水",
-            "只是看看效果，水杯先友好亮个相",
-            "预览归预览，顺手喝一口也不亏",
-            "当前属于演示场次，请轻松围观"
-        ],
-        Openings:
-        [
-            "当前提醒处于暂停状态，所以这次只是一个温柔的界面演示。",
-            "你现在看到的是预览版本，不会改变正式提醒节奏。",
-            "这次出现的主要目标，是帮你看看弹窗效果顺不顺眼。",
-            "虽然系统没有正式催你，但水杯还是很想参与一下。",
-            "就把它当成一次轻量试播，不用有任何压力。",
-            "提醒暂停中，不过弹窗偶尔也想证明自己还在线。",
-            "这条消息的气氛比正式提醒更轻松一点。",
-            "你可以把它理解成一场不打扰工作的彩排。",
-            "现在不要求立刻行动，纯看效果也完全没问题。",
-            "这是一条友好的演示消息，不是硬核催办。"
-        ],
-        Middles:
-        [
-            "如果你顺手喝一口，那也算预览阶段的额外彩蛋。",
-            "正式提醒仍然保持暂停，不会因为这次预览偷偷恢复。",
-            "界面先出来打个卡，后续节奏还按你的设置走。",
-            "看看样式、感受一下文案，就算完成任务了。",
-            "弹窗的工作先做到这里，剩下的交给你心情决定。",
-            "它只是想优雅出现一下，不会对你步步紧逼。",
-            "演示期间一切从简，但轻松感必须在线。",
-            "这次的存在感主要来自设计，不来自催促。",
-            "预览结束后，系统仍旧会尊重你当前的暂停选择。",
-            "安心围观即可，正式流程没有被改写。"
-        ],
-        Closings:
-        [
-            "想喝就喝，看看效果也完全可以。",
-            "这波主打一个轻松出现。",
-            "看完效果，我们就安静退场。",
-            "这次只是彩排，不抢戏。",
-            "围观完毕即可，感谢配合。",
-            "如果顺手喝一口，那属于额外加分。",
-            "演示到此，氛围感拉满就够了。",
-            "这条消息的任务，就是轻轻出现一下。",
-            "看完就好，不给你添乱。",
-            "保持轻松，继续你的节奏。"
-        ]);
-
     public ReminderMessageService(IMouseActivityService mouseActivityService)
     {
         _mouseActivityService = mouseActivityService;
@@ -475,10 +408,9 @@ public sealed class ReminderMessageService : IReminderMessageService
 
     public ReminderMessage Create(HydrationSettingsDto settings, DateTimeOffset now)
     {
-        var catalog = settings.IsPaused ? PausedPreviewCatalog : GetCatalog(now);
+        var catalog = GetCatalog(now);
         return BuildMessage(
             catalog,
-            settings.IsPaused,
             settings.ReminderIntervalMinutes,
             now,
             _mouseActivityService.GetSnapshot()
@@ -487,7 +419,6 @@ public sealed class ReminderMessageService : IReminderMessageService
 
     private ReminderMessage BuildMessage(
         MessageCatalog catalog,
-        bool isPaused,
         int reminderIntervalMinutes,
         DateTimeOffset now,
         MouseActivitySnapshot activitySnapshot
@@ -505,7 +436,7 @@ public sealed class ReminderMessageService : IReminderMessageService
                 message = new ReminderMessage(
                     Pick(catalog.Titles),
                     Pick(catalog.Headlines),
-                    BuildBody(catalog, isPaused, reminderIntervalMinutes, now, activitySnapshot)
+                    BuildCompactBody(catalog, reminderIntervalMinutes, now, activitySnapshot)
                 );
 
                 signature = $"{message.Title}|{message.Headline}|{message.Message}";
@@ -517,19 +448,6 @@ public sealed class ReminderMessageService : IReminderMessageService
         }
 
         return message;
-    }
-
-    private static string BuildBody(
-        MessageCatalog catalog,
-        bool isPaused,
-        int reminderIntervalMinutes,
-        DateTimeOffset now,
-        MouseActivitySnapshot activitySnapshot
-    )
-    {
-        return isPaused
-            ? BuildPausedBody()
-            : BuildCompactBody(catalog, reminderIntervalMinutes, now, activitySnapshot);
     }
 
     private static string BuildCompactBody(
@@ -573,29 +491,6 @@ public sealed class ReminderMessageService : IReminderMessageService
         return body.Length + thirdSentence.Length <= 40 && Random.Shared.NextDouble() < 0.3
             ? $"{body}{thirdSentence}"
             : body;
-    }
-
-    private static string BuildPausedBody()
-    {
-        var firstSentence = Pick(
-        [
-            "这次只是预览一下提醒样式。",
-            "正式提醒还按你的设置走。",
-            "现在只是轻量演示，不会打乱节奏。",
-            "看看效果就好，没有催办压力。",
-            "这条消息只是出来轻轻露个脸。"
-        ]);
-
-        var secondSentence = Pick(
-        [
-            "想喝就喝，顺手看看效果也很好。",
-            "围观完毕后，它会安静退场。",
-            "顺手喝一口，也算额外加分。",
-            "这波主打一个轻松出现。",
-            "看完效果，继续你的节奏就好。"
-        ]);
-
-        return firstSentence == secondSentence ? $"{firstSentence}轻松看看就好。" : $"{firstSentence}{secondSentence}";
     }
 
     private static string GetDayContext(DateTimeOffset now)
