@@ -346,3 +346,5 @@ healthchecksdb
 *.xml
 .claude
 dist
+src-tauri/target/
+src-tauri/gen/
