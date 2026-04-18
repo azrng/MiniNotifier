@@ -56,3 +56,38 @@ error: pathspec 'src-tauri/target' did not match any file(s) known to git
 - Related Files: .gitignore
 
 ---
+
+## [ERR-20260418-003] powershell-nvm-node-path-after-dotnet
+
+**Logged**: 2026-04-18T13:54:42+08:00
+**Priority**: medium
+**Status**: resolved
+**Area**: infra
+
+### Summary
+在同一段 PowerShell 长脚本里先跑 `dotnet build` 再执行 `nvm use` 和 `npm`，会出现 `npm.ps1` 找不到 `node.exe` 的环境问题。
+
+### Error
+```text
+& : The term 'node.exe' is not recognized as the name of a cmdlet, function, script file, or operable program.
+At C:\Users\synyi\AppData\Roaming\npm\npm.ps1:24 char:7
+```
+
+### Context
+- Command/operation attempted: 在一个 PowerShell 脚本中串行执行 `dotnet build MiniNotifier.slnx -c Release`、`nvm use 24.15.0`、`npm run build`、`npx tauri build --debug`
+- Input or parameters used: 使用 `nvm` 切换到 `24.15.0`
+- Environment details if relevant: Windows PowerShell, nvm for Windows, npm shim 位于 `C:\Users\synyi\AppData\Roaming\npm`
+
+### Suggested Fix
+将 `nvm use` 后的 Node 校验和 `npm`/`npx` 命令放到独立命令块执行；如遇异常，先用 `where.exe node` / `where.exe npm` 确认 PATH 已切到 `C:\Soft\nodejs` 再继续。
+
+### Metadata
+- Reproducible: yes
+- Related Files: .github/workflows/build.yml
+
+### Resolution
+- **Resolved**: 2026-04-18T13:54:42+08:00
+- **Commit/PR**: pending
+- **Notes**: 已通过单独执行 `nvm use 24.15.0` 并确认 `where.exe node` 后，再跑 `npm run build` 与 `npx tauri build --debug` 规避该问题。
+
+---

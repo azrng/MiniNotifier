@@ -2,9 +2,15 @@ name: Build and Package
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - tauri-rust
+      - feat/tauri-rust
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - tauri-rust
+      - feat/tauri-rust
   workflow_dispatch:
 
 permissions:
@@ -17,7 +23,10 @@ env:
   APP_NAME: 'MiniNotifier'
 
 jobs:
-  build:
+  build-wpf:
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.base_ref == 'main'
     runs-on: windows-latest
 
     steps:
@@ -29,33 +38,21 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: npm
-
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Install frontend dependencies
-      run: npm ci
-
     - name: Restore dependencies
       run: dotnet restore ${{ env.PROJECT_PATH }}
 
     - name: Build project
       run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
-    - name: Generate release metadata
+    - name: Generate WPF release metadata
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      id: release_meta
+      id: wpf_release_meta
       shell: pwsh
       run: |
         $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
         $shortSha = "${{ github.sha }}".Substring(0, 7)
-        $tag = "build-$timestamp-$shortSha"
-        $releaseName = "MiniNotifier Latest Build"
+        $tag = "wpf-build-$timestamp-$shortSha"
+        $releaseName = "MiniNotifier WPF Build"
         "tag_name=$tag" >> $env:GITHUB_OUTPUT
         "release_name=$releaseName" >> $env:GITHUB_OUTPUT
 
@@ -108,9 +105,6 @@ jobs:
         Compress-Archive -Path publish/win-x86/* -DestinationPath MiniNotifier-win-x86.zip
         Compress-Archive -Path publish/framework-dependent/* -DestinationPath MiniNotifier-framework-dependent.zip
 
-    - name: Build Tauri bundle
-      run: npx tauri build
-
     - name: Upload artifacts - x64
       uses: actions/upload-artifact@v4
       with:
@@ -132,6 +126,65 @@ jobs:
         path: MiniNotifier-framework-dependent.zip
         retention-days: 30
 
+    - name: Create WPF release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.wpf_release_meta.outputs.tag_name }}
+        name: ${{ steps.wpf_release_meta.outputs.release_name }}
+        target_commitish: ${{ github.sha }}
+        files: |
+          MiniNotifier-win-x64.zip
+          MiniNotifier-win-x86.zip
+          MiniNotifier-framework-dependent.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        make_latest: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-tauri:
+    if: |
+      github.ref == 'refs/heads/tauri-rust' ||
+      github.ref == 'refs/heads/feat/tauri-rust' ||
+      github.base_ref == 'tauri-rust' ||
+      github.base_ref == 'feat/tauri-rust'
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: npm
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install frontend dependencies
+      run: npm ci
+
+    - name: Build Tauri bundle
+      run: npx tauri build
+
+    - name: Generate Tauri release metadata
+      if: |
+        github.event_name == 'push' &&
+        (github.ref == 'refs/heads/tauri-rust' || github.ref == 'refs/heads/feat/tauri-rust')
+      id: tauri_release_meta
+      shell: pwsh
+      run: |
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        $shortSha = "${{ github.sha }}".Substring(0, 7)
+        $tag = "tauri-build-$timestamp-$shortSha"
+        $releaseName = "MiniNotifier Tauri Build"
+        "tag_name=$tag" >> $env:GITHUB_OUTPUT
+        "release_name=$releaseName" >> $env:GITHUB_OUTPUT
+
     - name: Upload artifacts - Tauri MSI
       uses: actions/upload-artifact@v4
       with:
@@ -146,22 +199,21 @@ jobs:
         path: src-tauri/target/release/bundle/nsis/*.exe
         retention-days: 30
 
-    - name: Create release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    - name: Create Tauri release
+      if: |
+        github.event_name == 'push' &&
+        (github.ref == 'refs/heads/tauri-rust' || github.ref == 'refs/heads/feat/tauri-rust')
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ steps.release_meta.outputs.tag_name }}
-        name: ${{ steps.release_meta.outputs.release_name }}
+        tag_name: ${{ steps.tauri_release_meta.outputs.tag_name }}
+        name: ${{ steps.tauri_release_meta.outputs.release_name }}
         target_commitish: ${{ github.sha }}
         files: |
-          MiniNotifier-win-x64.zip
-          MiniNotifier-win-x86.zip
-          MiniNotifier-framework-dependent.zip
           src-tauri/target/release/bundle/msi/*.msi
           src-tauri/target/release/bundle/nsis/*.exe
         draft: false
-        prerelease: false
+        prerelease: true
         generate_release_notes: true
-        make_latest: true
+        make_latest: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

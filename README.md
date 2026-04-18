@@ -69,15 +69,19 @@ dotnet build MiniNotifier.slnx
 
 ## CI / 发布产物
 
-当前 `.github/workflows/build.yml` 会在 Windows Runner 上同时产出两类构建结果：
+当前 `.github/workflows/build.yml` 按分支拆分发布链路：
 
-- WPF ZIP 包
-  - `MiniNotifier-win-x64.zip`
-  - `MiniNotifier-win-x86.zip`
-  - `MiniNotifier-framework-dependent.zip`
-- Tauri 安装包
-  - `src-tauri/target/release/bundle/msi/*.msi`
-  - `src-tauri/target/release/bundle/nsis/*.exe`
+- `main`
+  - 继续发布 WPF ZIP 包
+  - 产物包括：
+    - `MiniNotifier-win-x64.zip`
+    - `MiniNotifier-win-x86.zip`
+    - `MiniNotifier-framework-dependent.zip`
+- `tauri-rust` / `feat/tauri-rust`
+  - 发布 Tauri 安装包
+  - 产物包括：
+    - `src-tauri/target/release/bundle/msi/*.msi`
+    - `src-tauri/target/release/bundle/nsis/*.exe`
 
 ## 迁移约定
 
