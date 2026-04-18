@@ -19,13 +19,13 @@ public partial class ReminderWindowViewModel : ViewModelBase, IDisposable
     }
 
     [ObservableProperty]
-    private string _title = "Drink Water";
+    private string _title = "喝水提醒";
 
     [ObservableProperty]
-    private string _headline = "该喝水了";
+    private string _headline = "主人，该喝水了";
 
     [ObservableProperty]
-    private string _message = "补点水再继续，会更稳。";
+    private string _message = "起来活动一下，喝几口水，让状态重新上线。";
 
     [ObservableProperty]
     private string _countdownText = "15 秒后自动关闭";
