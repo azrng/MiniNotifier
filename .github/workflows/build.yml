@@ -13,8 +13,10 @@ permissions:
 env:
   DOTNET_VERSION: '10.0.x'
   PROJECT_PATH: 'src/MiniNotifier.Avalonia/MiniNotifier.Avalonia.csproj'
-  PUBLISH_PROFILE: 'NativeAot-win-x64'
-  PUBLISH_OUTPUT: 'src/MiniNotifier.Avalonia/bin/Release/net10.0-windows10.0.19041.0/publish/win-x64-aot'
+  AOT_PROFILE: 'NativeAot-win-x64'
+  AOT_OUTPUT: 'src/MiniNotifier.Avalonia/bin/Release/net10.0-windows10.0.19041.0/publish/win-x64-aot'
+  SINGLE_FILE_PROFILE: 'SingleFile-win-x64'
+  SINGLE_FILE_OUTPUT: 'src/MiniNotifier.Avalonia/bin/Release/net10.0-windows10.0.19041.0/publish/win-x64-single-file'
   APP_NAME: 'MiniNotifier'
 
 jobs:
@@ -53,14 +55,37 @@ jobs:
       run: |
         dotnet publish ${{ env.PROJECT_PATH }} `
           --configuration Release `
-          /p:PublishProfile=${{ env.PUBLISH_PROFILE }}
+          /p:PublishProfile=${{ env.AOT_PROFILE }}
 
     - name: Verify Native AOT publish output
       shell: pwsh
       run: |
-        $exePath = Join-Path "${{ env.PUBLISH_OUTPUT }}" "MiniNotifier.Avalonia.exe"
+        $exePath = Join-Path "${{ env.AOT_OUTPUT }}" "MiniNotifier.Avalonia.exe"
         if (-not (Test-Path $exePath)) {
           throw "Native AOT publish output missing executable: $exePath"
+        }
+
+        Get-Item $exePath | Format-List FullName,Length,LastWriteTime
+
+    - name: Publish Windows x64 Single File
+      shell: pwsh
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} `
+          --configuration Release `
+          /p:PublishProfile=${{ env.SINGLE_FILE_PROFILE }}
+
+    - name: Verify Single File publish output
+      shell: pwsh
+      run: |
+        $publishDir = "${{ env.SINGLE_FILE_OUTPUT }}"
+        $exePath = Join-Path $publishDir "MiniNotifier.Avalonia.exe"
+        if (-not (Test-Path $exePath)) {
+          throw "Single-file publish output missing executable: $exePath"
+        }
+
+        $files = Get-ChildItem -Path $publishDir -File
+        if ($files.Count -ne 1) {
+          throw "Single-file publish output should contain exactly one file, found $($files.Count)."
         }
 
         Get-Item $exePath | Format-List FullName,Length,LastWriteTime
@@ -68,23 +93,32 @@ jobs:
     - name: Create ZIP packages
       shell: pwsh
       run: |
-        Compress-Archive -Path "${{ env.PUBLISH_OUTPUT }}/*" -DestinationPath MiniNotifier-win-x64-aot.zip
+        Compress-Archive -Path "${{ env.AOT_OUTPUT }}/*" -DestinationPath MiniNotifier-win-x64-aot.zip
+        Compress-Archive -Path "${{ env.SINGLE_FILE_OUTPUT }}/*" -DestinationPath MiniNotifier-win-x64-single-file.zip
 
-    - name: Verify ZIP package
+    - name: Verify ZIP packages
       shell: pwsh
       run: |
-        $zipPath = "MiniNotifier-win-x64-aot.zip"
-        if (-not (Test-Path $zipPath)) {
-          throw "Release ZIP package was not created: $zipPath"
-        }
+        foreach ($zipPath in @("MiniNotifier-win-x64-aot.zip", "MiniNotifier-win-x64-single-file.zip")) {
+          if (-not (Test-Path $zipPath)) {
+            throw "Release ZIP package was not created: $zipPath"
+          }
 
-        Get-Item $zipPath | Format-List FullName,Length,LastWriteTime
+          Get-Item $zipPath | Format-List FullName,Length,LastWriteTime
+        }
 
     - name: Upload artifacts - win-x64-aot
       uses: actions/upload-artifact@v4
       with:
         name: MiniNotifier-win-x64-aot
         path: MiniNotifier-win-x64-aot.zip
+        retention-days: 30
+
+    - name: Upload artifacts - win-x64-single-file
+      uses: actions/upload-artifact@v4
+      with:
+        name: MiniNotifier-win-x64-single-file
+        path: MiniNotifier-win-x64-single-file.zip
         retention-days: 30
 
     - name: Create release
@@ -96,6 +130,7 @@ jobs:
         target_commitish: ${{ github.sha }}
         files: |
           MiniNotifier-win-x64-aot.zip
+          MiniNotifier-win-x64-single-file.zip
         draft: false
         prerelease: false
         generate_release_notes: true

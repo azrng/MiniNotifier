@@ -175,6 +175,7 @@ publish/
 *.pubxml
 !src/MiniNotifier/Properties/PublishProfiles/FolderProfile.pubxml
 !src/MiniNotifier.Avalonia/Properties/PublishProfiles/NativeAot-win-x64.pubxml
+!src/MiniNotifier.Avalonia/Properties/PublishProfiles/SingleFile-win-x64.pubxml
 *.publishproj
 
 # Microsoft Azure Web App publish settings. Comment the next line if you want to

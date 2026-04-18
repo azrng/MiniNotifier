@@ -21,6 +21,16 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <Target Name="RemoveReleasePublishSymbols"
+          AfterTargets="Publish"
+          Condition="'$(PublishProfile)' == 'NativeAot-win-x64' or '$(PublishProfile)' == 'SingleFile-win-x64'">
+    <ItemGroup>
+      <PublishedSymbols Include="$(PublishDir)*.pdb" />
+    </ItemGroup>
+
+    <Delete Files="@(PublishedSymbols)" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.0.1" />
     <PackageReference Include="Avalonia.Desktop" Version="12.0.1" />
