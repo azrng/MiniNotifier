@@ -69,6 +69,7 @@ public partial class App : Application
 
             var windowManager = (AvaloniaWindowManager)_host.Services.GetRequiredService<IWindowManager>();
             windowManager.Attach(desktop, mainWindow);
+            SingleInstanceCoordinator.ActivationRequested += OnSingleInstanceActivationRequested;
 
             await mainWindowViewModel.InitializeAsync();
 
@@ -80,6 +81,8 @@ public partial class App : Application
 
     private async void OnDesktopExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
+        SingleInstanceCoordinator.ActivationRequested -= OnSingleInstanceActivationRequested;
+
         if (_host is not null)
         {
             try
@@ -92,5 +95,10 @@ public partial class App : Application
                 _host = null;
             }
         }
+    }
+
+    private void OnSingleInstanceActivationRequested(object? sender, EventArgs e)
+    {
+        _host?.Services.GetService<IWindowManager>()?.ShowSettingsWindow();
     }
 }
