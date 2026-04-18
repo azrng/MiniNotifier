@@ -37,6 +37,25 @@ impl Default for HydrationSettingsDocument {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum WorkIntensityState {
+    Unavailable,
+    DeepFocus,
+    SteadyFlow,
+    ActiveHandling,
+    RapidFire,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MouseActivitySnapshot {
+    pub clicks_last_minute: usize,
+    pub clicks_last_five_minutes: usize,
+    pub work_state: WorkIntensityState,
+    pub work_state_text: String,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StartupSettingsDto {
@@ -74,6 +93,17 @@ pub struct ReminderPayload {
     pub headline: String,
     pub message: String,
     pub auto_close_seconds: i64,
+}
+
+impl MouseActivitySnapshot {
+    pub fn unavailable() -> Self {
+        Self {
+            clicks_last_minute: 0,
+            clicks_last_five_minutes: 0,
+            work_state: WorkIntensityState::Unavailable,
+            work_state_text: "监听未连接".to_string(),
+        }
+    }
 }
 
 fn default_true() -> bool {

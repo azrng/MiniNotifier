@@ -2,7 +2,9 @@ use tauri::{AppHandle, State};
 
 use crate::{
     errors::CommandError,
-    models::{HydrationSettingsDto, ReminderPayload, SaveHydrationSettingsInput},
+    models::{
+        HydrationSettingsDto, MouseActivitySnapshot, ReminderPayload, SaveHydrationSettingsInput,
+    },
     state::AppState,
 };
 
@@ -11,7 +13,7 @@ pub fn get_hydration_settings(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<HydrationSettingsDto, CommandError> {
-    state.settings.get_current(&app).map_err(Into::into)
+    state.inner().settings.get_current(&app).map_err(Into::into)
 }
 
 #[tauri::command]
@@ -20,7 +22,7 @@ pub fn save_hydration_settings(
     state: State<'_, AppState>,
     input: SaveHydrationSettingsInput,
 ) -> Result<HydrationSettingsDto, CommandError> {
-    state.settings.save(&app, input).map_err(Into::into)
+    state.inner().settings.save(&app, input).map_err(Into::into)
 }
 
 #[tauri::command]
@@ -28,7 +30,7 @@ pub fn toggle_hydration_pause(
     app: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<HydrationSettingsDto, CommandError> {
-    state.settings.toggle_pause(&app).map_err(Into::into)
+    state.inner().settings.toggle_pause(&app).map_err(Into::into)
 }
 
 #[tauri::command]
@@ -37,8 +39,9 @@ pub fn show_hydration_preview(
     state: State<'_, AppState>,
 ) -> Result<HydrationSettingsDto, CommandError> {
     state
+        .inner()
         .reminders
-        .show_preview(&app, &state.settings)
+        .show_preview(&app, &state.inner().settings, &state.inner().mouse_activity)
         .map_err(Into::into)
 }
 
@@ -46,10 +49,17 @@ pub fn show_hydration_preview(
 pub fn get_current_reminder_payload(
     state: State<'_, AppState>,
 ) -> Result<ReminderPayload, CommandError> {
-    Ok(state.reminders.current_payload())
+    Ok(state.inner().reminders.current_payload())
+}
+
+#[tauri::command]
+pub fn get_mouse_activity_snapshot(
+    state: State<'_, AppState>,
+) -> Result<MouseActivitySnapshot, CommandError> {
+    Ok(state.inner().mouse_activity.get_snapshot())
 }
 
 #[tauri::command]
 pub fn dismiss_reminder(app: AppHandle, state: State<'_, AppState>) -> Result<(), CommandError> {
-    state.reminders.dismiss(&app).map_err(Into::into)
+    state.inner().reminders.dismiss(&app).map_err(Into::into)
 }

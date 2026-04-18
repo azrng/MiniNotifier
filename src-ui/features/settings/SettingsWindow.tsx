@@ -8,15 +8,22 @@ import { Button } from "../../components/ui/Button";
 import { StatePanel } from "../../components/ui/StatePanel";
 import { MetricCard } from "../../components/business/MetricCard";
 import {
+  getMouseActivitySnapshot,
   loadHydrationSettings,
   saveHydrationSettings,
   showHydrationPreview,
   toggleHydrationPause
 } from "../../lib/tauri/hydration";
 import { hydrationSettingsFormSchema } from "../../schemas/hydration";
-import type { CommandError, HydrationSettings, HydrationSettingsFormValues } from "../../schemas/hydration";
+import type {
+  CommandError,
+  HydrationSettings,
+  HydrationSettingsFormValues,
+  MouseActivitySnapshot
+} from "../../schemas/hydration";
 
 const SETTINGS_QUERY_KEY = ["hydration-settings"];
+const ACTIVITY_QUERY_KEY = ["mouse-activity-snapshot"];
 
 type SettingsWindowProps = {
   queryClient: QueryClient;
@@ -71,6 +78,12 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
     queryFn: loadHydrationSettings
   });
 
+  const activityQuery = useQuery({
+    queryKey: ACTIVITY_QUERY_KEY,
+    queryFn: getMouseActivitySnapshot,
+    refetchInterval: 15000
+  });
+
   const form = useForm<HydrationSettingsFormValues>({
     resolver: zodResolver(hydrationSettingsFormSchema),
     defaultValues: createDefaultValues()
@@ -90,6 +103,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
   useEffect(() => {
     const unlistenPromise = listen<HydrationSettings>("settings-updated", (event) => {
       queryClient.setQueryData(SETTINGS_QUERY_KEY, event.payload);
+      void queryClient.invalidateQueries({ queryKey: ACTIVITY_QUERY_KEY });
     });
 
     return () => {
@@ -113,6 +127,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
     },
     onSuccess: (result) => {
       queryClient.setQueryData(SETTINGS_QUERY_KEY, result);
+      void queryClient.invalidateQueries({ queryKey: ACTIVITY_QUERY_KEY });
       form.reset(createDefaultValues(result));
     }
   });
@@ -121,6 +136,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
     mutationFn: showHydrationPreview,
     onSuccess: (result) => {
       queryClient.setQueryData(SETTINGS_QUERY_KEY, result);
+      void queryClient.invalidateQueries({ queryKey: ACTIVITY_QUERY_KEY });
     }
   });
 
@@ -128,6 +144,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
     mutationFn: toggleHydrationPause,
     onSuccess: (result) => {
       queryClient.setQueryData(SETTINGS_QUERY_KEY, result);
+      void queryClient.invalidateQueries({ queryKey: ACTIVITY_QUERY_KEY });
       form.reset(createDefaultValues(result));
     }
   });
@@ -216,6 +233,8 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
   }
 
   const settings = settingsQuery.data;
+  const activity = activityQuery.data;
+  const activityHint = buildActivityHint(activity);
 
   return (
     <main className="min-h-screen px-4 py-6 text-slate-900 sm:px-6">
@@ -239,7 +258,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
               </div>
             </header>
 
-            <section className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
+            <section className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
               <section className="rounded-[30px] bg-slate-950 px-6 py-6 text-white shadow-shell">
                 <div className="text-xs font-semibold uppercase tracking-[0.26em] text-brand-200">当前节奏</div>
                 <div className="mt-4 text-4xl font-semibold tracking-tight">{heroTitle}</div>
@@ -267,6 +286,12 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
                 title="上次提醒"
                 value={formatTime(settings.lastReminderAt, "--:--")}
                 hint={settings.lastReminderAt ? "最近一次弹窗已记录" : "今天还没有提醒"}
+              />
+              <MetricCard
+                accent="amber"
+                title="工作节奏"
+                value={activity?.workStateText ?? "监听未连接"}
+                hint={activityHint}
               />
             </section>
 
@@ -401,6 +426,7 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
                     <li>托盘菜单、暂停/恢复、立即提醒与退出动作由 Rust 托管。</li>
                     <li>配置文件继续兼容 `%LocalAppData%/MiniNotifier/hydration-settings.json`。</li>
                     <li>设置页通过 Command 读写真实配置，不再依赖 WPF ViewModel。</li>
+                    <li>提醒文案现在会结合时间段和全局鼠标活跃度来调整语气。</li>
                   </ul>
                 </section>
                 <MetricCard
@@ -417,4 +443,16 @@ export function SettingsWindow({ queryClient }: SettingsWindowProps) {
       </div>
     </main>
   );
+}
+
+function buildActivityHint(activity?: MouseActivitySnapshot) {
+  if (!activity) {
+    return "正在等待 Rust 侧返回当前鼠标活跃度。";
+  }
+
+  if (activity.workState === "unavailable") {
+    return "当前环境没有拿到全局监听信号，提醒文案会退回到通用语气。";
+  }
+
+  return `近 1 分钟 ${activity.clicksLastMinute} 次点击，近 5 分钟 ${activity.clicksLastFiveMinutes} 次。`;
 }

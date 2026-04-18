@@ -18,7 +18,8 @@ use tokio::time::sleep;
 use crate::{
     commands::{
         dismiss_reminder, get_current_reminder_payload, get_hydration_settings,
-        save_hydration_settings, show_hydration_preview, toggle_hydration_pause,
+        get_mouse_activity_snapshot, save_hydration_settings, show_hydration_preview,
+        toggle_hydration_pause,
     },
     state::AppState,
 };
@@ -43,6 +44,7 @@ pub fn run() {
             toggle_hydration_pause,
             show_hydration_preview,
             get_current_reminder_payload,
+            get_mouse_activity_snapshot,
             dismiss_reminder
         ])
         .on_window_event(|window, event| {
@@ -107,11 +109,15 @@ fn handle_tray_action(app: &AppHandle, action_id: &str) {
         }
         "preview" => {
             let state = app.state::<AppState>();
-            let _ = state.reminders.show_preview(app, &state.settings);
+            let state = state.inner();
+            let _ = state
+                .reminders
+                .show_preview(app, &state.settings, &state.mouse_activity);
             update_tray_tooltip(app.clone());
         }
         "toggle_pause" => {
             let state = app.state::<AppState>();
+            let state = state.inner();
             let _ = state.settings.toggle_pause(app);
             update_tray_tooltip(app.clone());
         }
@@ -124,6 +130,7 @@ fn handle_tray_action(app: &AppHandle, action_id: &str) {
 
 fn update_tray_tooltip(app: AppHandle) {
     let state = app.state::<AppState>();
+    let state = state.inner();
     let tooltip = if let Ok(settings) = state.settings.get_current(&app) {
         if !settings.is_reminder_enabled {
             "MiniNotifier · 已关闭".to_string()
@@ -148,8 +155,11 @@ fn spawn_scheduler(app: AppHandle) {
         loop {
             sleep(Duration::from_secs(15)).await;
             let state = app.state::<AppState>();
+            let state = state.inner();
             if state.settings.is_due() {
-                let _ = state.reminders.show_scheduled(&app, &state.settings);
+                let _ = state
+                    .reminders
+                    .show_scheduled(&app, &state.settings, &state.mouse_activity);
                 update_tray_tooltip(app.clone());
             }
         }

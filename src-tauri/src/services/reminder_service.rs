@@ -7,7 +7,10 @@ use tauri::{
 use crate::{
     errors::{AppError, AppResult},
     models::{HydrationSettingsDto, ReminderPayload},
-    services::{message_service::build_reminder_payload, settings_service::SettingsService},
+    services::{
+        message_service::build_reminder_payload, mouse_activity_service::MouseActivityService,
+        settings_service::SettingsService,
+    },
 };
 
 pub struct ReminderService {
@@ -47,26 +50,30 @@ impl ReminderService {
         &self,
         app: &AppHandle,
         settings: &SettingsService,
+        mouse_activity: &MouseActivityService,
     ) -> AppResult<HydrationSettingsDto> {
-        self.show(app, settings, true)
+        self.show(app, settings, mouse_activity, true)
     }
 
     pub fn show_scheduled(
         &self,
         app: &AppHandle,
         settings: &SettingsService,
+        mouse_activity: &MouseActivityService,
     ) -> AppResult<HydrationSettingsDto> {
-        self.show(app, settings, false)
+        self.show(app, settings, mouse_activity, false)
     }
 
     fn show(
         &self,
         app: &AppHandle,
         settings: &SettingsService,
+        mouse_activity: &MouseActivityService,
         preserve_next_reminder: bool,
     ) -> AppResult<HydrationSettingsDto> {
         let document = settings.current_document();
-        let payload = build_reminder_payload(&document);
+        let activity_snapshot = mouse_activity.get_snapshot();
+        let payload = build_reminder_payload(&document, &activity_snapshot);
         {
             let mut current_payload = self
                 .payload

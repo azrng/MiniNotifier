@@ -16,6 +16,13 @@ export const hydrationSettingsSchema = z.object({
   startupSettings: startupSettingsSchema
 });
 
+export const mouseActivitySnapshotSchema = z.object({
+  clicksLastMinute: z.number().int().min(0),
+  clicksLastFiveMinutes: z.number().int().min(0),
+  workState: z.enum(["unavailable", "deepFocus", "steadyFlow", "activeHandling", "rapidFire"]),
+  workStateText: z.string()
+});
+
 export const hydrationSettingsFormSchema = z.object({
   isReminderEnabled: z.boolean(),
   reminderIntervalMinutes: z.coerce.number().int().min(5).max(240),
@@ -37,5 +44,6 @@ export const commandErrorSchema = z.object({
 
 export type HydrationSettings = z.infer<typeof hydrationSettingsSchema>;
 export type HydrationSettingsFormValues = z.infer<typeof hydrationSettingsFormSchema>;
+export type MouseActivitySnapshot = z.infer<typeof mouseActivitySnapshotSchema>;
 export type ReminderPayload = z.infer<typeof reminderPayloadSchema>;
 export type CommandError = z.infer<typeof commandErrorSchema>;

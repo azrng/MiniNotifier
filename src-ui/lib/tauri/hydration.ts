@@ -1,6 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
-import { commandErrorSchema, hydrationSettingsSchema, reminderPayloadSchema } from "../../schemas/hydration";
-import type { CommandError, HydrationSettings, ReminderPayload } from "../../schemas/hydration";
+import {
+  commandErrorSchema,
+  hydrationSettingsSchema,
+  mouseActivitySnapshotSchema,
+  reminderPayloadSchema
+} from "../../schemas/hydration";
+import type {
+  CommandError,
+  HydrationSettings,
+  MouseActivitySnapshot,
+  ReminderPayload
+} from "../../schemas/hydration";
 
 type SaveHydrationSettingsInput = {
   isReminderEnabled: boolean;
@@ -57,6 +67,10 @@ export async function showHydrationPreview() {
 
 export async function getCurrentReminderPayload() {
   return invokeWithSchema("get_current_reminder_payload", reminderPayloadSchema);
+}
+
+export async function getMouseActivitySnapshot() {
+  return invokeWithSchema("get_mouse_activity_snapshot", mouseActivitySnapshotSchema);
 }
 
 export async function dismissReminder() {
