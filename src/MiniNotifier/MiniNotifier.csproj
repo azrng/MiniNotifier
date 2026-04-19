@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MiniNotifier.Shared\MiniNotifier.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\Icons\AppIcon.ico" />
   </ItemGroup>
 

@@ -8,8 +8,8 @@
     <ApplicationIcon>Assets\Icons\AppIcon.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <IsAotCompatible>true</IsAotCompatible>
-    <PublishAot Condition="'$(Configuration)' == 'Release' and '$(RuntimeIdentifier)' != ''">true</PublishAot>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Release' and '$(RuntimeIdentifier)' != ''">true</PublishTrimmed>
+    <PublishAot Condition="'$(Configuration)' == 'Release' and '$(RuntimeIdentifier)' != '' and '$(PublishProfile)' != 'SingleFile-win-x64'">true</PublishAot>
+    <PublishTrimmed Condition="'$(Configuration)' == 'Release' and '$(RuntimeIdentifier)' != '' and '$(PublishProfile)' != 'SingleFile-win-x64'">true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
   </PropertyGroup>
 
@@ -55,47 +55,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\MiniNotifier\Helpers\AppDiagnostics.cs">
-      <Link>Shared\Helpers\AppDiagnostics.cs</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Helpers\AppPaths.cs">
-      <Link>Shared\Helpers\AppPaths.cs</Link>
-    </Compile>
-
-    <Compile Include="..\MiniNotifier\Models\*.cs">
-      <Link>Shared\Models\%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Models\DTOs\*.cs">
-      <Link>Shared\Models\DTOs\%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Models\Entities\*.cs">
-      <Link>Shared\Models\Entities\%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Models\Serialization\*.cs">
-      <Link>Shared\Models\Serialization\%(Filename)%(Extension)</Link>
-    </Compile>
-
-    <Compile Include="..\MiniNotifier\Repositories\Interfaces\*.cs">
-      <Link>Shared\Repositories\Interfaces\%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Repositories\Implementations\JsonHydrationSettingsRepository.cs">
-      <Link>Shared\Repositories\Implementations\JsonHydrationSettingsRepository.cs</Link>
-    </Compile>
-
-    <Compile Include="..\MiniNotifier\Services\Interfaces\*.cs">
-      <Link>Shared\Services\Interfaces\%(Filename)%(Extension)</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Services\Implementations\HydrationSettingsService.cs">
-      <Link>Shared\Services\Implementations\HydrationSettingsService.cs</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Services\Implementations\MouseActivityService.cs">
-      <Link>Shared\Services\Implementations\MouseActivityService.cs</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Services\Implementations\RegistryAutoStartService.cs">
-      <Link>Shared\Services\Implementations\RegistryAutoStartService.cs</Link>
-    </Compile>
-    <Compile Include="..\MiniNotifier\Services\Implementations\ReminderMessageService.cs">
-      <Link>Shared\Services\Implementations\ReminderMessageService.cs</Link>
-    </Compile>
+    <ProjectReference Include="..\MiniNotifier.Shared\MiniNotifier.Shared.csproj" />
   </ItemGroup>
 </Project>

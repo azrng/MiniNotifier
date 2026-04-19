@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src/MiniNotifier/MiniNotifier.csproj" />
+  <Project Path="src/MiniNotifier.Shared/MiniNotifier.Shared.csproj" />
   <Project Path="src/MiniNotifier.Avalonia/MiniNotifier.Avalonia.csproj" />
 </Solution>

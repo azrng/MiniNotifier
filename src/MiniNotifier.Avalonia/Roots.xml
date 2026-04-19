@@ -12,6 +12,8 @@
     <type fullname="MiniNotifier.Avalonia.Views.ReminderWindow" preserve="all" />
     <type fullname="MiniNotifier.Avalonia.ViewModels.MainWindowViewModel" preserve="all" />
     <type fullname="MiniNotifier.Avalonia.ViewModels.ReminderWindowViewModel" preserve="all" />
+  </assembly>
+  <assembly fullname="MiniNotifier.Shared">
     <type fullname="MiniNotifier.Models.Entities.HydrationSettingsDocument" preserve="all" />
     <type fullname="MiniNotifier.Models.Serialization.HydrationSettingsJsonContext" preserve="all" />
   </assembly>
