@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Threading;
+using System.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,9 +16,12 @@ using Wpf.Ui.Appearance;
 
 namespace MiniNotifier;
 
-public partial class App : Application
+public partial class App : Application, IDisposable
 {
+    private const string SingleInstanceMutexName = "Local\\MiniNotifier.SingleInstance";
+
     private IHost? _host;
+    private Mutex? _singleInstanceMutex;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -25,6 +29,15 @@ public partial class App : Application
         {
             var exitCode = await AppUpdateRunner.RunAsync(e.Args);
             Shutdown(exitCode);
+            return;
+        }
+
+        _singleInstanceMutex = new Mutex(true, SingleInstanceMutexName, out var isFirstInstance);
+        if (!isFirstInstance)
+        {
+            _singleInstanceMutex.Dispose();
+            _singleInstanceMutex = null;
+            Shutdown();
             return;
         }
 
@@ -76,6 +89,7 @@ public partial class App : Application
         await _host.Services.GetRequiredService<MainWindowViewModel>().InitializeAsync();
         _host.Services.GetRequiredService<ITrayService>().Initialize();
         _host.Services.GetRequiredService<IReminderSchedulerService>().Initialize();
+        _host.Services.GetRequiredService<IWindowManager>().ShowSettingsWindow();
     }
 
     protected override async void OnExit(ExitEventArgs e)
@@ -94,9 +108,20 @@ public partial class App : Application
 
             await _host.StopAsync();
             _host.Dispose();
+            _host = null;
         }
 
+        ReleaseSingleInstanceMutex();
+
         base.OnExit(e);
+    }
+
+    public void Dispose()
+    {
+        _host?.Dispose();
+        _host = null;
+        ReleaseSingleInstanceMutex();
+        GC.SuppressFinalize(this);
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -117,5 +142,24 @@ public partial class App : Application
     {
         AppDiagnostics.LogException("TaskScheduler.UnobservedTaskException", e.Exception);
         e.SetObserved();
+    }
+
+    private void ReleaseSingleInstanceMutex()
+    {
+        if (_singleInstanceMutex is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _singleInstanceMutex.ReleaseMutex();
+        }
+        catch (ApplicationException)
+        {
+        }
+
+        _singleInstanceMutex.Dispose();
+        _singleInstanceMutex = null;
     }
 }
