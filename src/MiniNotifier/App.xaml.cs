@@ -90,6 +90,7 @@ public partial class App : Application, IDisposable
         _host.Services.GetRequiredService<ITrayService>().Initialize();
         _host.Services.GetRequiredService<IReminderSchedulerService>().Initialize();
         _host.Services.GetRequiredService<IWindowManager>().ShowSettingsWindow();
+        _host.Services.GetRequiredService<IReminderPreviewService>().WarmUp();
     }
 
     protected override async void OnExit(ExitEventArgs e)
