@@ -17,20 +17,24 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IHydrationSettingsService _settingsService;
     private readonly IReminderPreviewService _reminderPreviewService;
+    private readonly IApplicationUpdateService _applicationUpdateService;
     private readonly ISnackbarService _snackbarService;
     private bool _isInitialized;
     private bool _isApplyingSettings;
     private DateTimeOffset? _lastReminderAt;
     private DateTimeOffset? _nextReminderAt;
+    private AppUpdateCheckResultDto? _pendingUpdate;
 
     public MainWindowViewModel(
         IHydrationSettingsService settingsService,
         IReminderPreviewService reminderPreviewService,
+        IApplicationUpdateService applicationUpdateService,
         ISnackbarService snackbarService
     )
     {
         _settingsService = settingsService;
         _reminderPreviewService = reminderPreviewService;
+        _applicationUpdateService = applicationUpdateService;
         _snackbarService = snackbarService;
 
         _settingsService.SettingsChanged += OnSettingsChanged;
@@ -62,6 +66,18 @@ public partial class MainWindowViewModel : ViewModelBase
     private double _autoCloseSeconds = 5;
 
     [ObservableProperty]
+    private bool _enableUpdateCheck = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CheckForUpdatesButtonText))]
+    [NotifyPropertyChangedFor(nameof(UpdateActionVisibility))]
+    private bool _isCheckingForUpdates;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(UpdateActionVisibility))]
+    private bool _isUpdateAvailable;
+
+    [ObservableProperty]
     private string _nextReminderText = "--";
 
     [ObservableProperty]
@@ -72,6 +88,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _autoStartStatusText = "未开启";
+
+    [ObservableProperty]
+    private string _updateStatusText = "尚未检查更新。";
+
+    [ObservableProperty]
+    private string _lastUpdateCheckText = "尚未检查";
+
+    [ObservableProperty]
+    private string _latestAvailableVersion = "尚未检查";
+
+    [ObservableProperty]
+    private string _latestPublishedAtText = "--";
 
     public string HeroStateText =>
         !IsReminderEnabled ? "提醒已关闭" : IsPaused ? "提醒已暂停" : "提醒进行中";
@@ -88,6 +116,15 @@ public partial class MainWindowViewModel : ViewModelBase
     public string PauseButtonText => IsPaused ? "恢复提醒" : "暂停提醒";
 
     public string ApplicationVersionText => $"当前版本 v{ResolveApplicationVersion()}";
+
+    public string CurrentAppVersion => ResolveApplicationVersion();
+
+    public string UpdateChannelName => _applicationUpdateService.ChannelName;
+
+    public string CheckForUpdatesButtonText => IsCheckingForUpdates ? "检查中..." : "检查更新";
+
+    public Visibility UpdateActionVisibility =>
+        IsUpdateAvailable && !IsCheckingForUpdates ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility ContentVisibility =>
         CurrentViewState == SettingsViewState.Content ? Visibility.Visible : Visibility.Collapsed;
@@ -113,6 +150,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _isInitialized = true;
         await LoadAsync();
+        _ = CheckStartupUpdateAsync();
     }
 
     [RelayCommand]
@@ -165,6 +203,55 @@ public partial class MainWindowViewModel : ViewModelBase
             AppDiagnostics.LogException("MainWindowViewModel.SaveAsync", ex);
             CurrentViewState = SettingsViewState.Error;
             ShowError("保存失败", "本地配置或开机自启动更新时发生异常，请稍后重试。");
+        }
+    }
+
+    [RelayCommand]
+    private async Task CheckForUpdatesAsync()
+    {
+        if (IsCheckingForUpdates)
+        {
+            return;
+        }
+
+        await CheckForUpdatesCoreAsync(showLatestToast: true, silentFailure: false);
+    }
+
+    [RelayCommand]
+    private async Task StartUpdateAsync()
+    {
+        if (_pendingUpdate is null || IsCheckingForUpdates)
+        {
+            return;
+        }
+
+        IsCheckingForUpdates = true;
+        UpdateStatusText = $"发现新版本 {_pendingUpdate.LatestVersion}，正在启动更新程序...";
+
+        try
+        {
+            var result = await _applicationUpdateService.StartUpdateAsync(_pendingUpdate);
+            if (!result.IsSuccess)
+            {
+                var message = BuildUpdateFailureMessage(result);
+                UpdateStatusText = message;
+                ShowError("启动更新失败", message);
+                return;
+            }
+
+            _snackbarService.Show(
+                "更新程序已启动",
+                "MiniNotifier 将退出，更新完成后会自动重新打开。",
+                ControlAppearance.Success,
+                TimeSpan.FromSeconds(4)
+            );
+
+            await Task.Delay(500);
+            Application.Current.Shutdown();
+        }
+        finally
+        {
+            IsCheckingForUpdates = false;
         }
     }
 
@@ -254,6 +341,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsPaused = settings.IsPaused;
         ReminderIntervalMinutes = settings.ReminderIntervalMinutes;
         AutoCloseSeconds = settings.AutoCloseSeconds;
+        EnableUpdateCheck = settings.EnableUpdateCheck;
         _lastReminderAt = settings.LastReminderAt;
         _nextReminderAt = settings.NextReminderAt;
         IsAutoStartEnabled = settings.StartupSettings.IsEnabled;
@@ -273,6 +361,7 @@ public partial class MainWindowViewModel : ViewModelBase
             IsPaused = IsPaused,
             ReminderIntervalMinutes = (int)Math.Round(ReminderIntervalMinutes, MidpointRounding.AwayFromZero),
             AutoCloseSeconds = (int)Math.Round(AutoCloseSeconds, MidpointRounding.AwayFromZero),
+            EnableUpdateCheck = EnableUpdateCheck,
             LastReminderAt = _lastReminderAt,
             NextReminderAt = _nextReminderAt,
             SaveStateText = SaveStateText,
@@ -317,6 +406,102 @@ public partial class MainWindowViewModel : ViewModelBase
             ControlAppearance.Danger,
             TimeSpan.FromSeconds(4)
         );
+    }
+
+    private async Task CheckStartupUpdateAsync()
+    {
+        if (!EnableUpdateCheck || !_applicationUpdateService.IsConfigured)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.Delay(1200);
+            await CheckForUpdatesCoreAsync(showLatestToast: false, silentFailure: true);
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.LogException("MainWindowViewModel.CheckStartupUpdateAsync", ex);
+        }
+    }
+
+    private async Task CheckForUpdatesCoreAsync(bool showLatestToast, bool silentFailure)
+    {
+        if (!_applicationUpdateService.IsConfigured)
+        {
+            const string message = "尚未配置更新源，请检查 appsettings.json 中的 Update 节点。";
+            UpdateStatusText = message;
+            if (!silentFailure)
+            {
+                ShowError("检查更新失败", message);
+            }
+
+            return;
+        }
+
+        IsCheckingForUpdates = true;
+        IsUpdateAvailable = false;
+        _pendingUpdate = null;
+        UpdateStatusText = $"正在通过 {UpdateChannelName} 检查更新...";
+
+        try
+        {
+            var result = await _applicationUpdateService.CheckForUpdatesAsync(CurrentAppVersion);
+            LastUpdateCheckText = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            if (!result.IsSuccess || result.Data is null)
+            {
+                var message = BuildUpdateFailureMessage(result);
+                UpdateStatusText = message;
+                if (!silentFailure)
+                {
+                    ShowError("检查更新失败", message);
+                }
+
+                return;
+            }
+
+            LatestAvailableVersion = result.Data.LatestVersion;
+            LatestPublishedAtText = result.Data.PublishedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "--";
+
+            if (!result.Data.HasUpdate)
+            {
+                UpdateStatusText = $"当前已是最新版本 {result.Data.CurrentVersion}。";
+                if (showLatestToast)
+                {
+                    _snackbarService.Show(
+                        "已是最新版本",
+                        UpdateStatusText,
+                        ControlAppearance.Success,
+                        TimeSpan.FromSeconds(3)
+                    );
+                }
+
+                return;
+            }
+
+            _pendingUpdate = result.Data;
+            IsUpdateAvailable = true;
+            UpdateStatusText = $"发现新版本 {result.Data.LatestVersion}，可立即更新。";
+            _snackbarService.Show(
+                "发现新版本",
+                $"MiniNotifier {result.Data.LatestVersion} 已可用，可在设置窗口中立即更新。",
+                ControlAppearance.Info,
+                TimeSpan.FromSeconds(5)
+            );
+        }
+        finally
+        {
+            IsCheckingForUpdates = false;
+        }
+    }
+
+    private static string BuildUpdateFailureMessage<T>(AppUpdateOperationResult<T> result)
+    {
+        return string.IsNullOrWhiteSpace(result.ErrorCode)
+            ? result.Message
+            : $"{result.Message}（{result.ErrorCode}）";
     }
 
     private static string ResolveApplicationVersion()

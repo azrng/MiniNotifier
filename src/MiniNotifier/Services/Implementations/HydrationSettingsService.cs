@@ -64,6 +64,7 @@ public sealed class HydrationSettingsService : IHydrationSettingsService, IDispo
                 IsPaused = settings.IsPaused,
                 ReminderIntervalMinutes = settings.ReminderIntervalMinutes,
                 AutoCloseSeconds = settings.AutoCloseSeconds,
+                EnableUpdateCheck = settings.EnableUpdateCheck,
                 LastReminderAt = settings.LastReminderAt ?? _settingsDocument?.LastReminderAt,
                 NextReminderAt = settings.NextReminderAt
             });
@@ -225,6 +226,7 @@ public sealed class HydrationSettingsService : IHydrationSettingsService, IDispo
             IsPaused = settings.IsPaused,
             ReminderIntervalMinutes = settings.ReminderIntervalMinutes,
             AutoCloseSeconds = settings.AutoCloseSeconds,
+            EnableUpdateCheck = settings.EnableUpdateCheck,
             LastReminderAt = settings.LastReminderAt,
             NextReminderAt = settings.NextReminderAt,
             SaveStateText = saveStateText,

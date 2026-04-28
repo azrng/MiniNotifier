@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -15,6 +16,7 @@ public sealed class TrayService : ITrayService, IDisposable
     private readonly IWindowManager _windowManager;
     private readonly IReminderPreviewService _reminderPreviewService;
     private readonly IHydrationSettingsService _settingsService;
+    private readonly IApplicationUpdateService _applicationUpdateService;
 
     private TaskbarIcon? _taskbarIcon;
     private ContextMenu? _contextMenu;
@@ -26,12 +28,14 @@ public sealed class TrayService : ITrayService, IDisposable
     public TrayService(
         IWindowManager windowManager,
         IReminderPreviewService reminderPreviewService,
-        IHydrationSettingsService settingsService
+        IHydrationSettingsService settingsService,
+        IApplicationUpdateService applicationUpdateService
     )
     {
         _windowManager = windowManager;
         _reminderPreviewService = reminderPreviewService;
         _settingsService = settingsService;
+        _applicationUpdateService = applicationUpdateService;
 
         _settingsService.SettingsChanged += OnSettingsChanged;
     }
@@ -52,6 +56,9 @@ public sealed class TrayService : ITrayService, IDisposable
         var previewMenuItem = new MenuItem { Header = "立即提醒一次" };
         previewMenuItem.Click += PreviewMenuItemOnClick;
 
+        var checkUpdateMenuItem = new MenuItem { Header = "检查更新" };
+        checkUpdateMenuItem.Click += CheckUpdateMenuItemOnClick;
+
         var exitMenuItem = new MenuItem { Header = "退出应用" };
         exitMenuItem.Click += ExitMenuItemOnClick;
 
@@ -59,6 +66,7 @@ public sealed class TrayService : ITrayService, IDisposable
         _contextMenu.Items.Add(openMenuItem);
         _contextMenu.Items.Add(previewMenuItem);
         _contextMenu.Items.Add(_pauseMenuItem);
+        _contextMenu.Items.Add(checkUpdateMenuItem);
         _contextMenu.Items.Add(new Separator());
         _contextMenu.Items.Add(exitMenuItem);
 
@@ -131,6 +139,11 @@ public sealed class TrayService : ITrayService, IDisposable
         await HandleTrayActionAsync(async () => await _settingsService.TogglePauseAsync());
     }
 
+    private async void CheckUpdateMenuItemOnClick(object sender, RoutedEventArgs e)
+    {
+        await HandleTrayActionAsync(CheckForUpdatesFromTrayAsync);
+    }
+
     private async void ExitMenuItemOnClick(object sender, RoutedEventArgs e)
     {
         await HandleTrayActionAsync(() =>
@@ -138,6 +151,52 @@ public sealed class TrayService : ITrayService, IDisposable
             _windowManager.ShutdownApplication();
             return Task.CompletedTask;
         });
+    }
+
+    private async Task CheckForUpdatesFromTrayAsync()
+    {
+        var result = await _applicationUpdateService.CheckForUpdatesAsync(ResolveApplicationVersion());
+        if (!result.IsSuccess || result.Data is null)
+        {
+            ShowTrayMessage("检查更新失败", BuildUpdateFailureMessage(result), MessageBoxImage.Error);
+            return;
+        }
+
+        if (!result.Data.HasUpdate)
+        {
+            ShowTrayMessage(
+                "MiniNotifier",
+                $"当前已是最新版本 {result.Data.CurrentVersion}。",
+                MessageBoxImage.Information
+            );
+            return;
+        }
+
+        var answer = MessageBox.Show(
+            $"发现新版本 {result.Data.LatestVersion}，是否立即更新？",
+            "MiniNotifier",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Information
+        );
+        if (answer != MessageBoxResult.Yes)
+        {
+            _windowManager.ShowSettingsWindow();
+            return;
+        }
+
+        var startResult = await _applicationUpdateService.StartUpdateAsync(result.Data);
+        if (!startResult.IsSuccess)
+        {
+            ShowTrayMessage("启动更新失败", BuildUpdateFailureMessage(startResult), MessageBoxImage.Error);
+            return;
+        }
+
+        ShowTrayMessage(
+            "更新程序已启动",
+            "MiniNotifier 将退出，更新完成后会自动重新打开。",
+            MessageBoxImage.Information
+        );
+        _windowManager.ShutdownApplication();
     }
 
     private void OnSettingsChanged(object? sender, HydrationSettingsDto settings)
@@ -191,7 +250,7 @@ public sealed class TrayService : ITrayService, IDisposable
 
                 try
                 {
-                    PrepareFrameworkElement(_contextMenu, new System.Windows.Size(220, 200));
+                    PrepareFrameworkElement(_contextMenu, new System.Windows.Size(220, 236));
 
                     foreach (var item in _contextMenu.Items)
                     {
@@ -266,5 +325,35 @@ public sealed class TrayService : ITrayService, IDisposable
                 );
             });
         }
+    }
+
+    private static void ShowTrayMessage(string title, string message, MessageBoxImage image)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, image);
+        });
+    }
+
+    private static string BuildUpdateFailureMessage<T>(AppUpdateOperationResult<T> result)
+    {
+        return string.IsNullOrWhiteSpace(result.ErrorCode)
+            ? result.Message
+            : $"{result.Message}（{result.ErrorCode}）";
+    }
+
+    private static string ResolveApplicationVersion()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var informationalVersion = assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+
+        if (!string.IsNullOrWhiteSpace(informationalVersion))
+        {
+            return informationalVersion.Split('+')[0];
+        }
+
+        return assembly.GetName().Version?.ToString() ?? "1.0.0";
     }
 }

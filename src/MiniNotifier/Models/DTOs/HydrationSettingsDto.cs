@@ -10,6 +10,8 @@ public sealed record HydrationSettingsDto
 
     public int AutoCloseSeconds { get; init; }
 
+    public bool EnableUpdateCheck { get; init; } = true;
+
     public DateTimeOffset? LastReminderAt { get; init; }
 
     public DateTimeOffset? NextReminderAt { get; init; }

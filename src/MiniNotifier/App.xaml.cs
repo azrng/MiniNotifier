@@ -21,6 +21,13 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        if (AppUpdateRunner.IsUpdateMode(e.Args))
+        {
+            var exitCode = await AppUpdateRunner.RunAsync(e.Args);
+            Shutdown(exitCode);
+            return;
+        }
+
         base.OnStartup(e);
 
         DispatcherUnhandledException += OnDispatcherUnhandledException;
@@ -44,6 +51,7 @@ public partial class App : Application
                 services.AddSingleton<IReminderPreviewService, ReminderPreviewService>();
                 services.AddSingleton<IReminderSchedulerService, ReminderSchedulerService>();
                 services.AddSingleton<IReminderMessageService, ReminderMessageService>();
+                services.AddSingleton<IApplicationUpdateService, ApplicationUpdateService>();
 
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddTransient<HydrationReminderViewModel>();
