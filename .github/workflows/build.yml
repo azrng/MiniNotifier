@@ -95,6 +95,23 @@ jobs:
         Compress-Archive -Path publish/win-x86/* -DestinationPath MiniNotifier-win-x86.zip
         Compress-Archive -Path publish/framework-dependent/* -DestinationPath MiniNotifier-framework-dependent.zip
 
+    - name: Generate update manifest
+      shell: pwsh
+      run: |
+        [xml]$project = Get-Content ${{ env.PROJECT_PATH }}
+        $version = $project.Project.PropertyGroup.Version
+        $hash = (Get-FileHash MiniNotifier-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+        $publishedAt = (Get-Date).ToUniversalTime().ToString("o")
+        $downloadUrl = "https://github.com/${{ github.repository }}/releases/latest/download/MiniNotifier-win-x64.zip"
+        $manifest = [ordered]@{
+          PacketName = "MiniNotifier-win-x64"
+          Hash = $hash
+          Version = $version
+          Url = $downloadUrl
+          PubTime = $publishedAt
+        }
+        $manifest | ConvertTo-Json | Set-Content versions.json -Encoding UTF8
+
     - name: Upload artifacts - x64
       uses: actions/upload-artifact@v4
       with:
@@ -116,6 +133,13 @@ jobs:
         path: MiniNotifier-framework-dependent.zip
         retention-days: 30
 
+    - name: Upload artifacts - update manifest
+      uses: actions/upload-artifact@v4
+      with:
+        name: MiniNotifier-update-manifest
+        path: versions.json
+        retention-days: 30
+
     - name: Create release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v2
@@ -127,6 +151,7 @@ jobs:
           MiniNotifier-win-x64.zip
           MiniNotifier-win-x86.zip
           MiniNotifier-framework-dependent.zip
+          versions.json
         draft: false
         prerelease: false
         generate_release_notes: true
