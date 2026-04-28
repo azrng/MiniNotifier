@@ -130,7 +130,7 @@ public sealed class TrayService : ITrayService, IDisposable
         await HandleTrayActionAsync(async () =>
         {
             var settings = await _settingsService.GetCurrentAsync();
-            await _reminderPreviewService.ShowAsync(settings);
+            await _reminderPreviewService.ShowAsync(settings, preserveNextReminder: false);
         });
     }
 

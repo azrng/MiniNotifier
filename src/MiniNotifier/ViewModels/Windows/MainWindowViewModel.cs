@@ -260,7 +260,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            await _reminderPreviewService.ShowAsync(CreateSnapshot());
+            await _reminderPreviewService.ShowAsync(CreateSnapshot(), preserveNextReminder: false);
         }
         catch (Exception ex)
         {
